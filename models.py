@@ -1,10 +1,17 @@
+from enum import Enum as PythonEnum
 from typing import List
-from sqlalchemy import ForeignKey, String, Integer, Table, Column
+from datetime import datetime
+from sqlalchemy import ForeignKey, String, Integer, Table, Column, JSON, Enum, DateTime, Text
 from sqlalchemy.orm import mapped_column, Mapped, relationship
-
 from fastapi_users.db import SQLAlchemyBaseUserTable
+
 from db.engine import Base
 
+class Roles(PythonEnum):
+    ADMIN = "admin"
+    MANAGER = "maanager"
+    USER = "user"
+    READ_ONLY = "read_only"
 
 users_in_founds = Table(
     "users_founds",
@@ -24,22 +31,19 @@ managers_in_founds = Table(
 class User(SQLAlchemyBaseUserTable[int], Base):
     __tablename__ = "users"
     id: Mapped[int] = mapped_column(Integer(), primary_key=True, index=True)
-    nickname: Mapped[str] = mapped_column(String(), nullable=False)
-    password: Mapped[str] = mapped_column(String(), nullable=False)
-    email: Mapped[str] = mapped_column(String())
-    first_name: Mapped[str] = mapped_column(String())
-    last_name: Mapped[str] = mapped_column(String())
-    by_fathers_name: Mapped[str] = mapped_column(String())
-    contact_fields: Mapped[str] = mapped_column(String())
-    address: Mapped[str] = mapped_column(String())
+    email: Mapped[str] = mapped_column(String(128))
+    first_name: Mapped[str] = mapped_column(String(64))
+    last_name: Mapped[str] = mapped_column(String(64))
+    by_fathers_name: Mapped[str] = mapped_column(String(64))
+    contact_fields: Mapped[str] = mapped_column(JSON(none_as_null=True))
+    address: Mapped[str] = mapped_column(Text())
+    role: Mapped[str] = mapped_column(Enum(Roles))
 
     founds: Mapped[List["Found"]] = relationship(
         secondary=users_in_founds,
-        back_populates="users",
     )
     managers_founds: Mapped[List["Found"]] = relationship(
         secondary=managers_in_founds,
-        back_populates="users",
     )
 
 
@@ -52,11 +56,9 @@ class Found(Base):
 
     users: Mapped[List["User"]] = relationship(
         secondary=users_in_founds,
-        back_populates="founds",
     )
     managers: Mapped[List["User"]] = relationship(
         secondary=managers_in_founds,
-        back_populates="founds",
     )
 
 class Record(Base):
@@ -64,3 +66,19 @@ class Record(Base):
     id: Mapped[int] = mapped_column(Integer(), primary_key=True, index=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
     found_id: Mapped[int] = mapped_column(ForeignKey("founds.id"))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default="now()")
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=True)
+    arbitrage: Mapped[str] = mapped_column(String(64), nullable=True)
+    comment: Mapped[str] = mapped_column(Text(), nullable=False)
+    previous_versions: Mapped[List["RecordHistory"]] = relationship()
+
+class RecordHistory(Base):
+    __tablename__ = "records_history"
+    id: Mapped[int] = mapped_column(Integer(), primary_key=True, index=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    found_id: Mapped[int] = mapped_column(ForeignKey("founds.id"))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=True)
+    arbitrage: Mapped[str] = mapped_column(String(64), nullable=True)
+    comment: Mapped[str] = mapped_column(Text(), nullable=False)
+    current_version: Mapped[int] = mapped_column(ForeignKey("records.id"))
