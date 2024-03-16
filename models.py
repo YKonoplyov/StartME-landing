@@ -1,3 +1,4 @@
+import json
 from enum import Enum as PythonEnum
 from typing import List
 from datetime import datetime
@@ -23,7 +24,7 @@ users_in_founds = Table(
 managers_in_founds = Table(
     "managers_founds",
     Base.metadata,
-    Column("user_id", ForeignKey("users.id"), primary_key=True),
+    Column("manager_id", ForeignKey("users.id"), primary_key=True),
     Column("founds_id", ForeignKey("founds.id"), primary_key=True),
 )
 
@@ -31,19 +32,24 @@ managers_in_founds = Table(
 class User(SQLAlchemyBaseUserTable[int], Base):
     __tablename__ = "users"
     id: Mapped[int] = mapped_column(Integer(), primary_key=True, index=True)
-    email: Mapped[str] = mapped_column(String(128))
-    first_name: Mapped[str] = mapped_column(String(64))
-    last_name: Mapped[str] = mapped_column(String(64))
-    by_fathers_name: Mapped[str] = mapped_column(String(64))
-    contact_fields: Mapped[str] = mapped_column(JSON(none_as_null=True))
-    address: Mapped[str] = mapped_column(Text())
+    username: Mapped[str] = mapped_column(String(64), unique=True)
+    first_name: Mapped[str] = mapped_column(String(64), nullable=True)
+    last_name: Mapped[str] = mapped_column(String(64), nullable=True)
+    by_fathers_name: Mapped[str] = mapped_column(String(64), nullable=True)
+    contact_fields: Mapped[dict] = mapped_column(JSON(none_as_null=True), nullable=True)
+    nicknames: Mapped[dict] = mapped_column(JSON(none_as_null=True), nullable=True)
+    gipsy_team: Mapped[str] = mapped_column(String(256), nullable=True)
+    address: Mapped[str] = mapped_column(Text(), nullable=True)
     role: Mapped[str] = mapped_column(Enum(Roles))
-
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default="now()")
+    
     founds: Mapped[List["Found"]] = relationship(
         secondary=users_in_founds,
+        back_populates="users"
     )
-    managers_founds: Mapped[List["Found"]] = relationship(
+    managed_founds: Mapped[List["Found"]] = relationship(
         secondary=managers_in_founds,
+        back_populates="managers"
     )
 
 
@@ -51,14 +57,16 @@ class Found(Base):
     __tablename__ = "founds"
     id: Mapped[int] = mapped_column(Integer(), primary_key=True, index=True)
     name: Mapped[str] = mapped_column(String(), nullable=False)
-    discord: Mapped[str] = mapped_column(String())
+    discord: Mapped[str] = mapped_column(String(), nullable=True)
     link: Mapped[str] = mapped_column(String())
 
     users: Mapped[List["User"]] = relationship(
         secondary=users_in_founds,
+        back_populates="founds"
     )
     managers: Mapped[List["User"]] = relationship(
         secondary=managers_in_founds,
+        back_populates="managed_founds"
     )
 
 class Record(Base):

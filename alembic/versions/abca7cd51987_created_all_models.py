@@ -1,8 +1,8 @@
 """created all models
 
-Revision ID: 1fac521d9c06
+Revision ID: abca7cd51987
 Revises: 
-Create Date: 2024-03-13 20:04:48.375753
+Create Date: 2024-03-13 22:46:04.427490
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = '1fac521d9c06'
+revision: str = 'abca7cd51987'
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -45,11 +45,11 @@ def upgrade() -> None:
     )
     op.create_index(op.f('ix_users_id'), 'users', ['id'], unique=False)
     op.create_table('managers_founds',
-    sa.Column('user_id', sa.Integer(), nullable=False),
+    sa.Column('manager_id', sa.Integer(), nullable=False),
     sa.Column('founds_id', sa.Integer(), nullable=False),
     sa.ForeignKeyConstraint(['founds_id'], ['founds.id'], ),
-    sa.ForeignKeyConstraint(['user_id'], ['users.id'], ),
-    sa.PrimaryKeyConstraint('user_id', 'founds_id')
+    sa.ForeignKeyConstraint(['manager_id'], ['users.id'], ),
+    sa.PrimaryKeyConstraint('manager_id', 'founds_id')
     )
     op.create_table('records',
     sa.Column('id', sa.Integer(), nullable=False),

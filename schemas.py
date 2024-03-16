@@ -1,8 +1,9 @@
-from typing import Any, Dict
+from typing import Any, Dict, Optional, List
 from pydantic import BaseModel
 
-from fastapi_users import schemas
+from fastapi_users import schemas as users_schemas
 
+from models import Roles
 
 def model_dump(model: BaseModel, *args, **kwargs) -> Dict[str, Any]:
         return model.model_dump(*args, **kwargs)
@@ -16,12 +17,18 @@ class CreateUpdateDictModel(BaseModel):
             self,
             exclude_unset=True,
             exclude={
-                "id",
+                "id"
             },
         )
 
     def create_update_dict_superuser(self):
         return model_dump(self, exclude_unset=True, exclude={"id"})
+
+    
+    def convert_fields_to_optional(self):
+        return {k: Optional[v] for k, v in self.__annotations__.items()}
+
+
     
 
 class FoundBase(CreateUpdateDictModel):
@@ -33,7 +40,45 @@ class FoundCreate(FoundBase):
     ...
 
 class FoundUpdate(FoundBase):
-    id: int
+     
+    name: Optional[str|None] = None
+    discord: Optional[str|None] = None
+    link: Optional[str|None] = None
 
 class FoundRead(FoundBase):
     id: int
+
+
+class UserRead(users_schemas.BaseUser):
+    username: str
+    role: Roles
+    email: Optional[str|None] = None
+    first_name: Optional[str|None] = None
+    last_name: Optional[str|None] = None
+    by_fathers_name: Optional[str|None] = None
+    contact_fields: Optional[dict|None] = None
+    address: Optional[str|None] = None
+
+
+class UserCreate(users_schemas.BaseUserCreate):
+    username: str
+    password: str
+    role: Roles
+    email: Optional[str|None] = None
+    first_name: Optional[str|None] = None
+    last_name: Optional[str|None] = None
+    by_fathers_name: Optional[str|None] = None
+    contact_fields: Optional[dict|None] = None
+    address: Optional[str|None] = None
+    founds_ids: Optional[List[int]] = None
+
+class UserUpdate(users_schemas.BaseUserUpdate):
+    email: Optional[str|None] = None
+    first_name: Optional[str|None] = None
+    last_name: Optional[str|None] = None
+    by_fathers_name: Optional[str|None] = None
+    contact_fields: Optional[dict|None] = None
+    address: Optional[str|None] = None
+
+class UserRead(users_schemas.CreateUpdateDictModel):
+    ...
