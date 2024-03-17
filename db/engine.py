@@ -1,4 +1,3 @@
-
 import os
 from typing import AsyncGenerator
 from dotenv import load_dotenv
@@ -15,9 +14,7 @@ SYNC_DATABASE_URL = f"postgresql+psycopg2://{os.getenv('POSTGRES_USER')}:{os.get
 
 Base = declarative_base()
 
-sync_engine = engine = create_engine(
-    SYNC_DATABASE_URL
-)
+sync_engine = engine = create_engine(SYNC_DATABASE_URL)
 async_engine = create_async_engine(ASYNC_DATABASE_URL)
 async_session_maker = async_sessionmaker(async_engine, expire_on_commit=False)
 sync_session = sessionmaker(autocommit=False, autoflush=False, bind=engine)
