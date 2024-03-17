@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Any, Dict, Optional, List
 from pydantic import BaseModel
 
@@ -50,6 +51,7 @@ class FoundRead(FoundBase):
 
 
 class UserRead(users_schemas.BaseUser):
+    id: int
     username: str
     role: Roles
     email: Optional[str|None] = None
@@ -58,11 +60,12 @@ class UserRead(users_schemas.BaseUser):
     by_fathers_name: Optional[str|None] = None
     contact_fields: Optional[dict|None] = None
     address: Optional[str|None] = None
+    created_at: datetime
+    gipsy_team: Optional[str|None] = None
 
 
 class UserCreate(users_schemas.BaseUserCreate):
     username: str
-    password: str
     role: Roles
     email: Optional[str|None] = None
     first_name: Optional[str|None] = None
@@ -70,15 +73,47 @@ class UserCreate(users_schemas.BaseUserCreate):
     by_fathers_name: Optional[str|None] = None
     contact_fields: Optional[dict|None] = None
     address: Optional[str|None] = None
-    founds_ids: Optional[List[int]] = None
+    created_at: datetime
+    gipsy_team: Optional[str|None] = None
 
 class UserUpdate(users_schemas.BaseUserUpdate):
+    email: Optional[str|None] = None
+    role: Roles
     email: Optional[str|None] = None
     first_name: Optional[str|None] = None
     last_name: Optional[str|None] = None
     by_fathers_name: Optional[str|None] = None
     contact_fields: Optional[dict|None] = None
     address: Optional[str|None] = None
+    created_at: datetime
+    gipsy_team: Optional[str|None] = None
 
-class UserRead(users_schemas.CreateUpdateDictModel):
+# class UserRead(users_schemas.CreateUpdateDictModel):
+#     ...
+
+
+class RecordBase(CreateUpdateDictModel):
+    arbitrage: Optional[str|None] = None
+    comment: Optional[str|None] = None
+
+class RecordCreate(RecordBase):
+    user_id: int
+    found_id: int
+
+class RecordHistoryRead(RecordBase):
+    id: int
+    created_at: datetime
+    updated_at: Optional[datetime|None] = None
+    user: UserRead
+    found: FoundRead
+
+class RecordRead(RecordBase):
+    id: int
+    created_at: datetime
+    updated_at: Optional[datetime|None] = None
+    user: UserRead
+    found: FoundRead
+    previous_versions: Optional[List["RecordHistoryRead"]|None] = None
+
+class RecordUpdate(RecordBase):
     ...

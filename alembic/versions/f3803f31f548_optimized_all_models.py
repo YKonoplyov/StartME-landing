@@ -1,8 +1,8 @@
-"""created all models
+"""optimized all models
 
-Revision ID: abca7cd51987
+Revision ID: f3803f31f548
 Revises: 
-Create Date: 2024-03-13 22:46:04.427490
+Create Date: 2024-03-17 15:10:45.854493
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = 'abca7cd51987'
+revision: str = 'f3803f31f548'
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -23,26 +23,32 @@ def upgrade() -> None:
     op.create_table('founds',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('name', sa.String(), nullable=False),
-    sa.Column('discord', sa.String(), nullable=False),
+    sa.Column('discord', sa.String(), nullable=True),
     sa.Column('link', sa.String(), nullable=False),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_index(op.f('ix_founds_id'), 'founds', ['id'], unique=False)
     op.create_table('users',
     sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('email', sa.String(length=128), nullable=False),
-    sa.Column('first_name', sa.String(length=64), nullable=False),
-    sa.Column('last_name', sa.String(length=64), nullable=False),
-    sa.Column('by_fathers_name', sa.String(length=64), nullable=False),
-    sa.Column('contact_fields', sa.JSON(none_as_null=True), nullable=False),
-    sa.Column('address', sa.Text(), nullable=False),
+    sa.Column('username', sa.String(length=64), nullable=False),
+    sa.Column('first_name', sa.String(length=64), nullable=True),
+    sa.Column('last_name', sa.String(length=64), nullable=True),
+    sa.Column('by_fathers_name', sa.String(length=64), nullable=True),
+    sa.Column('contact_fields', sa.JSON(none_as_null=True), nullable=True),
+    sa.Column('nicknames', sa.JSON(none_as_null=True), nullable=True),
+    sa.Column('gipsy_team', sa.String(length=256), nullable=True),
+    sa.Column('address', sa.Text(), nullable=True),
     sa.Column('role', sa.Enum('ADMIN', 'MANAGER', 'USER', 'READ_ONLY', name='roles'), nullable=False),
+    sa.Column('created_at', sa.DateTime(timezone=True), server_default='now()', nullable=False),
+    sa.Column('email', sa.String(length=320), nullable=False),
     sa.Column('hashed_password', sa.String(length=1024), nullable=False),
     sa.Column('is_active', sa.Boolean(), nullable=False),
     sa.Column('is_superuser', sa.Boolean(), nullable=False),
     sa.Column('is_verified', sa.Boolean(), nullable=False),
-    sa.PrimaryKeyConstraint('id')
+    sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('username')
     )
+    op.create_index(op.f('ix_users_email'), 'users', ['email'], unique=True)
     op.create_index(op.f('ix_users_id'), 'users', ['id'], unique=False)
     op.create_table('managers_founds',
     sa.Column('manager_id', sa.Integer(), nullable=False),
@@ -55,10 +61,10 @@ def upgrade() -> None:
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('user_id', sa.Integer(), nullable=False),
     sa.Column('found_id', sa.Integer(), nullable=False),
-    sa.Column('created_at', sa.DateTime(timezone=True), server_default='now()', nullable=False),
+    sa.Column('created_at', sa.DateTime(timezone=True), nullable=False),
     sa.Column('updated_at', sa.DateTime(timezone=True), nullable=True),
     sa.Column('arbitrage', sa.String(length=64), nullable=True),
-    sa.Column('comment', sa.Text(), nullable=False),
+    sa.Column('comment', sa.Text(), nullable=True),
     sa.ForeignKeyConstraint(['found_id'], ['founds.id'], ),
     sa.ForeignKeyConstraint(['user_id'], ['users.id'], ),
     sa.PrimaryKeyConstraint('id')
@@ -98,6 +104,7 @@ def downgrade() -> None:
     op.drop_table('records')
     op.drop_table('managers_founds')
     op.drop_index(op.f('ix_users_id'), table_name='users')
+    op.drop_index(op.f('ix_users_email'), table_name='users')
     op.drop_table('users')
     op.drop_index(op.f('ix_founds_id'), table_name='founds')
     op.drop_table('founds')

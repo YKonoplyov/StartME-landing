@@ -10,7 +10,7 @@ from db.engine import Base
 
 class Roles(PythonEnum):
     ADMIN = "admin"
-    MANAGER = "maanager"
+    MANAGER = "manager"
     USER = "user"
     READ_ONLY = "read_only"
 
@@ -73,18 +73,22 @@ class Record(Base):
     __tablename__ = "records"
     id: Mapped[int] = mapped_column(Integer(), primary_key=True, index=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    user: Mapped["User"] = relationship()
     found_id: Mapped[int] = mapped_column(ForeignKey("founds.id"))
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default="now()")
+    found: Mapped["Found"] =  relationship()
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.now())
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=True)
     arbitrage: Mapped[str] = mapped_column(String(64), nullable=True)
-    comment: Mapped[str] = mapped_column(Text(), nullable=False)
+    comment: Mapped[str] = mapped_column(Text(), nullable=True)
     previous_versions: Mapped[List["RecordHistory"]] = relationship()
 
 class RecordHistory(Base):
     __tablename__ = "records_history"
     id: Mapped[int] = mapped_column(Integer(), primary_key=True, index=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    user: Mapped["User"] = relationship("User")
     found_id: Mapped[int] = mapped_column(ForeignKey("founds.id"))
+    found: Mapped["Found"] = relationship("Found")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=True)
     arbitrage: Mapped[str] = mapped_column(String(64), nullable=True)

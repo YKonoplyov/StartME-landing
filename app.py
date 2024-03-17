@@ -12,25 +12,27 @@ from fastapi_users.router import common
 from fastapi_users import exceptions
 from fastapi_users import models as fast_users_models
 
+from utils.exceptions import ObjectNotFound
+
 
 app = FastAPI()
 
-@app.get("/founds", response_model=List[schemas.FoundRead], dependencies=[Depends(permissions.manager_or_higher)])
+@app.get("/founds", response_model=List[schemas.FoundRead], tags=["founds"], dependencies=[Depends(permissions.manager_or_higher)])
 async def get_founds_list(db: AsyncSession = Depends(get_async_session)):
     founds_list = await crud.get_found_list(db=db)
     return founds_list
 
-@app.get("/founds/{found_id}", response_model=schemas.FoundRead)
+@app.get("/founds/{found_id}", response_model=schemas.FoundRead, tags=["founds"], dependencies=[Depends(permissions.manager_or_higher)])
 async def get_found_by_id(found_id: int, db: AsyncSession = Depends(get_async_session)):
     try:
         found = await crud.get_found_by_id(db=db, found_id=found_id)
-    except:
-        return HTTPException(
+    except ObjectNotFound:
+        raise HTTPException(
             code=400, detail="No such found"
         )
     return found
 
-@app.post("/founds", response_model=schemas.FoundRead)
+@app.post("/founds", response_model=schemas.FoundRead, tags=["founds"], dependencies=[Depends(permissions.manager_or_higher)])
 async def create_found(
     found_data: schemas.FoundCreate,
     db: AsyncSession = Depends(get_async_session)
@@ -38,7 +40,7 @@ async def create_found(
     new_found = await crud.create_found(db=db, found_data=found_data)
     return new_found
 
-@app.patch("/founds/{found_id}", response_model=schemas.FoundRead,)
+@app.patch("/founds/{found_id}", response_model=schemas.FoundRead, tags=["founds"], dependencies=[Depends(permissions.manager_or_higher)])
 async def update_found_by_id(
     found_id: int,
     found_data: schemas.FoundUpdate,
@@ -46,21 +48,26 @@ async def update_found_by_id(
 ):
     try:
         updated_found = await crud.update_found_by_id(db=db, found_id=found_id, found_new_data=found_data)
-    except:
+    except ObjectNotFound:
         return HTTPException(
-            code=400, detail="No such found"
+            status_code=400, detail="No such found"
         )
     return updated_found
 
-@app.delete("/founds/{found_id}")
+@app.delete("/founds/{found_id}", tags=["founds"], dependencies=[Depends(permissions.manager_or_higher)])
 async def delete_found_by_id(found_id: int, db: AsyncSession = Depends(get_async_session)):
     try:
         await crud.delete_found_by_id(db=db, found_id=found_id)
-    except:
+    except ObjectNotFound:
         return HTTPException(
-            code=400, detail="No such found"
+            status_code=400, detail="No such found"
         )
     return Response(status_code=204)
+
+@app.post("/founds/add_manager", tags=["founds"], dependencies=[Depends(permissions.manager_or_higher)])
+async def add_manager(found_id: int, manager_id: int, db: AsyncSession = Depends(get_async_session)):
+    await crud.found_add_manager(found_id=found_id, user_id=manager_id, db=db)
+    return
 
 app.include_router(
     fastapi_users.get_auth_router(auth_backend), prefix="/auth/jwt", tags=["auth"]
@@ -98,6 +105,7 @@ app.include_router(
                 },
             },
         },
+        tags=["auth"]
     )
 async def register(
     request: Request,
@@ -138,3 +146,44 @@ app.include_router(
     prefix="/users",
     tags=["users"],
 )
+
+
+@app.get("/records", response_model=List[schemas.RecordRead], tags=["records"], dependencies=[Depends(permissions.read_only_or_higher)])
+async def get_records_list(search_query: str|None = None, found_id: int|None = None, db: AsyncSession = Depends(get_async_session)):
+    records_list = await crud.get_records_list(
+        search_query=search_query,
+        found_id=found_id,
+        db=db
+    )
+    return records_list
+
+@app.get("/records/{record_id}", response_model=schemas.RecordRead, tags=["records"], dependencies=[Depends(permissions.read_only_or_higher)])
+async def get_record_by_id(record_id: int, db: AsyncSession = Depends(get_async_session)):
+    record = await crud.get_record_by_id(db=db, record_id=record_id)
+    return record
+
+@app.post("/records", response_model=schemas.RecordRead, tags=["records"], dependencies=[Depends(permissions.manager_or_higher)])
+async def create_record(record_data: schemas.RecordCreate, db: AsyncSession = Depends(get_async_session)):
+    try:
+        new_record =  await crud.create_record(db=db, record_data=record_data)
+    except ObjectNotFound:
+        raise HTTPException(
+            status_code=404, detail="something went wrong"
+        )
+    return new_record
+
+@app.patch("/records/{record_id}", response_model=schemas.RecordRead, tags=["records"], dependencies=[Depends(permissions.manager_or_higher)])
+async def update_record_by_id(record_id: int, record_data: schemas.RecordUpdate, db: AsyncSession = Depends(get_async_session)) -> schemas.RecordRead:
+    updated_record = await  crud.update_record_by_id(record_id=record_id, new_data=record_data, db=db)
+    return updated_record
+
+@app.delete("/records/{record_id}", tags=["records"], dependencies=[Depends(permissions.manager_or_higher)])
+async def delete_record_by_id(record_id: int, db: AsyncSession = Depends(get_async_session)):
+    try:
+        await crud.delete_record_by_id(db=db, record_id=record_id)
+    except ObjectNotFound:
+        raise HTTPException(
+            status_code=400, detail="No such found"
+        )
+    return Response(status_code=204)
+
