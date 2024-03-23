@@ -1,6 +1,6 @@
 from datetime import datetime
 from typing import Any, Dict, Optional, List
-from pydantic import BaseModel, Json
+from pydantic import BaseModel, ConfigDict
 
 from fastapi_users import schemas as users_schemas
 
@@ -32,7 +32,7 @@ class CreateUpdateDictModel(BaseModel):
 class NicknameBase(CreateUpdateDictModel):
     room_name: Optional[str | None] = None
     nickname: Optional[str | None] = None
-
+    model_config = ConfigDict(from_attributes=False)
 class NicknameCreate(NicknameBase):
     ...
 
@@ -49,7 +49,7 @@ class UserRead(users_schemas.BaseUser):
 
 class UserCreate(users_schemas.BaseUserCreate):
     username: str
-    password: int
+    password: str
     role: Roles
     email: Optional[str | None] = None
     created_at: datetime
@@ -82,6 +82,8 @@ class FoundRead(FoundBase):
 
 
 
+
+
 # class UserRead(users_schemas.CreateUpdateDictModel):
 #     ...
 
@@ -90,7 +92,7 @@ class RecordBase(CreateUpdateDictModel):
     first_name: Optional[str | None] = None
     last_name: Optional[str | None] = None
     middlename: Optional[str | None] = None
-    nicknames: List[NicknameRead|None] = None
+    nicknames: Optional[List[NicknameRead|None]] = None
     gipsyteam: Optional[str | None] = None
     pokerstrategy: Optional[str | None] = None
     description: Optional[str | None] = None
@@ -102,38 +104,64 @@ class RecordBase(CreateUpdateDictModel):
     blog: Optional[str | None] = None
     instagram: Optional[str | None] = None
     forum: Optional[str | None] = None
-    location: Optional[str | None] = None
     neteller: Optional[str | None] = None
     skrill: Optional[str | None] = None
     ecopayz: Optional[str | None] = None
     webmoney_id: Optional[str | None] = None
     wallets: Optional[str | None] = None
     old: Optional[bool | None] = None
-    fundName: Optional[str | None] = None
+    found: FoundRead
     nicknameOld: Optional[str | None] = None
     comments: Optional[str | None] = None
-
-
+    country: Optional[str | None] = None
+    town: Optional[str | None] = None
+    address: Optional[str | None] = None
+    
+    model_config = ConfigDict(from_attributes=False)
 
 
 class RecordCreate(RecordBase):
-    ...
+    fund_id: int
 
 
 class RecordHistoryRead(RecordBase):
     id: int
-    created_at: datetime
-    updated_at: Optional[datetime | None] = None
-    created_by: Optional[UserRead | None] = None
-    found: FoundRead
-
-
+    first_name: Optional[str | None] = None
+    last_name: Optional[str | None] = None
+    middlename: Optional[str | None] = None
+    nicknames: Optional[List[NicknameRead|None]] = None
+    gipsyteam: Optional[str | None] = None
+    pokerstrategy: Optional[str | None] = None
+    description: Optional[str | None] = None
+    amount: Optional[str | None] = None
+    google: Optional[str | None] = None
+    mail: Optional[str | None] = None
+    vk: Optional[str | None] = None
+    facebook: Optional[str | None] = None
+    blog: Optional[str | None] = None
+    instagram: Optional[str | None] = None
+    forum: Optional[str | None] = None
+    neteller: Optional[str | None] = None
+    skrill: Optional[str | None] = None
+    ecopayz: Optional[str | None] = None
+    webmoney_id: Optional[str | None] = None
+    wallets: Optional[str | None] = None
+    old: Optional[bool | None] = None
+    fund: FoundRead
+    nicknameOld: Optional[str | None] = None
+    comments: Optional[str | None] = None
+    country: Optional[str | None] = None
+    town: Optional[str | None] = None
+    address: Optional[str | None] = None
+    model_config = ConfigDict(from_attributes=False)
+    created_at: Optional[datetime | None] = None
+    fund: FoundRead
 class RecordRead(RecordBase):
     id: int
     created_at: datetime
     updated_at: Optional[datetime | None] = None
     created_by: Optional[UserRead | None] = None
-    previous_versions: Optional[List["RecordHistoryRead"] | None] = None
+    previous_versions: Optional[List[RecordHistoryRead] | None] = None
 
 
 class RecordUpdate(RecordBase): ...

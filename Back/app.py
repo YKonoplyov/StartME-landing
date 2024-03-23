@@ -83,13 +83,15 @@ async def update_found_by_id(
     found_id: int,
     found_data: schemas.FoundUpdate,
     db: AsyncSession = Depends(get_async_session),
+    user_manager: UserManager = Depends(get_user_manager)
     # current_user: User = Depends(permissions.manager_or_higher)
 ):
     try:
         updated_found = await crud.update_found_by_id(
             db=db, 
             found_id=found_id, 
-            found_new_data=found_data, 
+            found_new_data=found_data,
+            user_manager=user_manager
             # current_user=current_user
         )
     except ObjectNotFound:

@@ -37,7 +37,7 @@ class UsersDB(SQLAlchemyUserDatabase):
         await self.session.refresh(user)
         return user
 
-    async def get_by_username(self, username: str):
+    async def get_by_username_exc(self, username: str):
         statement = select(self.user_table).where(
             func.lower(self.user_table.username) == func.lower(username)
         )
@@ -45,7 +45,13 @@ class UsersDB(SQLAlchemyUserDatabase):
         if user is None:
             raise exceptions.UserNotExists
         return user
-
+    async def get_by_username(self, username: str):
+        statement = select(self.user_table).where(
+            func.lower(self.user_table.username) == func.lower(username)
+        )
+        user = await self._get_user(statement)
+        if user is None:
+            return user
     async def get_all_users(
         self,
     ):

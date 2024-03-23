@@ -41,19 +41,7 @@ SECRET = "SECRET"
 #     def generate(self) -> str:
 #         return secrets.token_urlsafe()
 
-class PasswordHelperV2(PasswordHelper):
-     def __init__(self, password_hash: Optional[PasswordHash] = None) -> None:
-        if password_hash is None:
-            self.password_hash = PasswordHash(
-                (
-                    BcryptHasher(rounds=10, prefix="2a"),
-                )
-            )
-        else:
-            self.password_hash = password_hash  # pragma: no cover   
-
 class UserManager(BaseUserManager[db_models.User, IntegerIDMixin]):
-    password_helper = PasswordHelperV2()
     reset_password_token_secret = SECRET
     verification_token_secret = SECRET
     async def authenticate(
@@ -61,7 +49,7 @@ class UserManager(BaseUserManager[db_models.User, IntegerIDMixin]):
     ) -> Optional[models.UP]:
         
         try:
-            user = await self.user_db.get_by_username(credentials.username)
+            user = await self.user_db.get_by_username_exc(credentials.username)
         except users_exceptions.UserNotExists:
             # Run the hasher to mitigate timing attack
             # Inspired from Django: https://code.djangoproject.com/ticket/20760
@@ -95,7 +83,7 @@ class UserManager(BaseUserManager[db_models.User, IntegerIDMixin]):
     ) -> models.UP:
 
         await self.validate_password(user_create.password, user_create)
-
+    
         existing_user = await self.user_db.get_by_username(user_create.username)
         if existing_user is not None:
             raise users_exceptions.UserAlreadyExists()

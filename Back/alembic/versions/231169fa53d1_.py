@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: dd1c828ba22b
+Revision ID: 231169fa53d1
 Revises: 
-Create Date: 2024-03-23 13:38:50.599663
+Create Date: 2024-03-23 20:58:10.569792
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = 'dd1c828ba22b'
+revision: str = '231169fa53d1'
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -53,8 +53,7 @@ def upgrade() -> None:
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('first_name', sa.String(length=64), nullable=True),
     sa.Column('last_name', sa.String(length=64), nullable=True),
-    sa.Column('middlname', sa.String(length=64), nullable=True),
-    sa.Column('nicknames', sa.JSON(none_as_null=True), nullable=True),
+    sa.Column('middlename', sa.String(length=64), nullable=True),
     sa.Column('gipsyteam', sa.Text(), nullable=True),
     sa.Column('pokerstrategy', sa.Text(), nullable=True),
     sa.Column('description', sa.Text(), nullable=True),
@@ -69,7 +68,7 @@ def upgrade() -> None:
     sa.Column('neteller', sa.Text(), nullable=True),
     sa.Column('skrill', sa.Text(), nullable=True),
     sa.Column('ecopayz', sa.Text(), nullable=True),
-    sa.Column('old', sa.Boolean(), nullable=False),
+    sa.Column('old', sa.Boolean(), nullable=True),
     sa.Column('fundName', sa.Text(), nullable=True),
     sa.Column('nicknameOld', sa.Text(), nullable=True),
     sa.Column('comments', sa.Text(), nullable=True),
@@ -77,7 +76,7 @@ def upgrade() -> None:
     sa.Column('town', sa.Text(), nullable=True),
     sa.Column('address', sa.Text(), nullable=True),
     sa.Column('created_by_id', sa.Integer(), nullable=True),
-    sa.Column('created_at', sa.DateTime(timezone=True), nullable=False),
+    sa.Column('created_at', sa.DateTime(timezone=True), nullable=True),
     sa.Column('webmoney_id', sa.Text(), nullable=True),
     sa.Column('wallets', sa.Text(), nullable=True),
     sa.Column('updated_at', sa.DateTime(timezone=True), nullable=True),
@@ -85,7 +84,6 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['created_by_id'], ['users.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
-    op.create_index(op.f('ix_records_id'), 'records', ['id'], unique=False)
     op.create_table('managers_founds',
     sa.Column('manager_id', sa.Integer(), nullable=False),
     sa.Column('founds_id', sa.Integer(), nullable=False),
@@ -97,8 +95,7 @@ def upgrade() -> None:
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('first_name', sa.String(length=64), nullable=True),
     sa.Column('last_name', sa.String(length=64), nullable=True),
-    sa.Column('middlname', sa.String(length=64), nullable=True),
-    sa.Column('nicknames', sa.JSON(none_as_null=True), nullable=True),
+    sa.Column('middlename', sa.String(length=64), nullable=True),
     sa.Column('gipsyteam', sa.Text(), nullable=True),
     sa.Column('pokerstrategy', sa.Text(), nullable=True),
     sa.Column('description', sa.Text(), nullable=True),
@@ -113,25 +110,22 @@ def upgrade() -> None:
     sa.Column('neteller', sa.Text(), nullable=True),
     sa.Column('skrill', sa.Text(), nullable=True),
     sa.Column('ecopayz', sa.Text(), nullable=True),
-    sa.Column('old', sa.Boolean(), nullable=False),
+    sa.Column('old', sa.Boolean(), nullable=True),
     sa.Column('fundName', sa.Text(), nullable=True),
     sa.Column('nicknameOld', sa.Text(), nullable=True),
     sa.Column('comments', sa.Text(), nullable=True),
     sa.Column('country', sa.Text(), nullable=True),
     sa.Column('town', sa.Text(), nullable=True),
     sa.Column('address', sa.Text(), nullable=True),
-    sa.Column('created_by_id', sa.Integer(), nullable=True),
-    sa.Column('created_at', sa.DateTime(timezone=True), nullable=False),
+    sa.Column('created_at', sa.DateTime(timezone=True), nullable=True),
     sa.Column('webmoney_id', sa.Text(), nullable=True),
     sa.Column('wallets', sa.Text(), nullable=True),
     sa.Column('updated_at', sa.DateTime(timezone=True), nullable=True),
-    sa.Column('current_version', sa.Integer(), nullable=False),
+    sa.Column('current_version_id', sa.Integer(), nullable=True),
     sa.Column('old_id', sa.String(), nullable=True),
-    sa.ForeignKeyConstraint(['created_by_id'], ['users.id'], ),
-    sa.ForeignKeyConstraint(['current_version'], ['records.id'], ),
+    sa.ForeignKeyConstraint(['current_version_id'], ['records.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
-    op.create_index(op.f('ix_records_history_id'), 'records_history', ['id'], unique=False)
     op.create_table('users_founds',
     sa.Column('user_id', sa.Integer(), nullable=False),
     sa.Column('founds_id', sa.Integer(), nullable=False),
@@ -139,16 +133,25 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['user_id'], ['users.id'], ),
     sa.PrimaryKeyConstraint('user_id', 'founds_id')
     )
+    op.create_table('nicknames',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('room_name', sa.String(length=64), nullable=True),
+    sa.Column('nickname', sa.String(length=64), nullable=True),
+    sa.Column('record_id', sa.Integer(), nullable=True),
+    sa.Column('history_record_id', sa.Integer(), nullable=True),
+    sa.ForeignKeyConstraint(['history_record_id'], ['records_history.id'], ),
+    sa.ForeignKeyConstraint(['record_id'], ['records.id'], ),
+    sa.PrimaryKeyConstraint('id')
+    )
     # ### end Alembic commands ###
 
 
 def downgrade() -> None:
     # ### commands auto generated by Alembic - please adjust! ###
+    op.drop_table('nicknames')
     op.drop_table('users_founds')
-    op.drop_index(op.f('ix_records_history_id'), table_name='records_history')
     op.drop_table('records_history')
     op.drop_table('managers_founds')
-    op.drop_index(op.f('ix_records_id'), table_name='records')
     op.drop_table('records')
     op.drop_index(op.f('ix_founds_id'), table_name='founds')
     op.drop_table('founds')
