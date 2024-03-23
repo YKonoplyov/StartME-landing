@@ -1,6 +1,9 @@
 from typing import Any, Optional
 
 from fastapi import Depends, Request, exceptions
+from pwdlib import PasswordHash
+from pwdlib.hashers.bcrypt import BcryptHasher
+from fastapi_users.password import PasswordHelper
 from fastapi_users import BaseUserManager, FastAPIUsers, IntegerIDMixin
 from fastapi_users.authentication import (
     AuthenticationBackend,
@@ -15,7 +18,42 @@ from db.users_db import get_user_db, models as db_models, User, UsersDB
 SECRET = "SECRET"
 
 
+# class PasswordHelper(PasswordHelperProtocol):
+#     def __init__(self, password_hash: Optional[PasswordHash] = None) -> None:
+#         if password_hash is None:
+#             self.password_hash = PasswordHash(
+#                 (
+#                     Argon2Hasher(),
+#                     BcryptHasher(),
+#                 )
+#             )
+#         else:
+#             self.password_hash = password_hash  # pragma: no cover
+
+#     def verify_and_update(
+#         self, plain_password: str, hashed_password: str
+#     ) -> Tuple[bool, Union[str, None]]:
+#         return self.password_hash.verify_and_update(plain_password, hashed_password)
+
+#     def hash(self, password: str) -> str:
+#         return self.password_hash.hash(password)
+
+#     def generate(self) -> str:
+#         return secrets.token_urlsafe()
+
+class PasswordHelperV2(PasswordHelper):
+     def __init__(self, password_hash: Optional[PasswordHash] = None) -> None:
+        if password_hash is None:
+            self.password_hash = PasswordHash(
+                (
+                    BcryptHasher(rounds=10, prefix="2a"),
+                )
+            )
+        else:
+            self.password_hash = password_hash  # pragma: no cover   
+
 class UserManager(BaseUserManager[db_models.User, IntegerIDMixin]):
+    password_helper = PasswordHelperV2()
     reset_password_token_secret = SECRET
     verification_token_secret = SECRET
     async def authenticate(

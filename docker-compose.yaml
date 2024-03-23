@@ -7,7 +7,7 @@ services:
     env_file:
       - .env
     ports:
-      - '${POSTGRES_PORT}:5432'
+      - '5432:5432'
     volumes:
       - 'postgres:/var/lib/postgresql/data'
     networks:
@@ -50,7 +50,7 @@ services:
 
 volumes:
   postgres:
-  nginx:
+#   nginx:
     
 networks:
   my_network:

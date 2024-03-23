@@ -16,7 +16,7 @@ from sqlalchemy import (
 from sqlalchemy.orm import mapped_column, Mapped, relationship
 from fastapi_users.db import SQLAlchemyBaseUserTable
 import json
-from db.engine import Base
+from engine import Base
 
 
 class Roles(PythonEnum):
@@ -44,7 +44,7 @@ managers_in_founds = Table(
 class User(SQLAlchemyBaseUserTable[int], Base):
     __tablename__ = "users"
     id: Mapped[int] = mapped_column(Integer(), primary_key=True, index=True)
-    login: Mapped[str] = mapped_column(String(64), nullable=True)
+    login: Mapped[str] = mapped_column(String(64), unique=True, nullable=False)
     username: Mapped[str] = mapped_column(String(64), unique=True, nullable=False)
     email: Mapped[str] = mapped_column(String(256), nullable=True)
     discord: Mapped[str] = mapped_column(String(256), nullable=True)
@@ -78,15 +78,6 @@ class Found(Base):
     owner_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=True)
     old_id: Mapped[str] = mapped_column(String(), nullable=True)
 
-class Nickname(Base):
-    __tablename__ = "nicknames"
-    id: Mapped[int] = mapped_column(Integer(), primary_key=True)
-    room_name: Mapped[str] = mapped_column(String(64), nullable=True)
-    nickname: Mapped[str] = mapped_column(String(64), nullable=True)
-    record_id: Mapped[int] = mapped_column(ForeignKey("records.id"))
-    record: Mapped["Record"] = relationship()
-    history_record_id: Mapped[int] = mapped_column(ForeignKey("records_history.id"))
-    record: Mapped["RecordHistory"] = relationship()
 
 class Record(Base):
     __tablename__ = "records"
@@ -94,7 +85,7 @@ class Record(Base):
     first_name: Mapped[str] = mapped_column(String(64), nullable=True)
     last_name: Mapped[str] = mapped_column(String(64), nullable=True)
     middlname: Mapped[str] = mapped_column(String(64), nullable=True)
-    nicknames: Mapped[List[Nickname]] = relationship()
+    nicknames: Mapped[Optional[dict[str, Any]]] = mapped_column(JSON(none_as_null=True), nullable=True)
     gipsyteam: Mapped[str] = mapped_column(Text(), nullable=True)
     pokerstrategy: Mapped[str] = mapped_column(Text(), nullable=True)
     description: Mapped[str] = mapped_column(Text(), nullable=True)
@@ -117,7 +108,7 @@ class Record(Base):
     town: Mapped[str] = mapped_column(Text(), nullable=True)
     address: Mapped[str] = mapped_column(Text(), nullable=True)
     created_by_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=True)
-    created_by: Mapped["User"] = relationship("User")
+    created_by: Mapped["User"] = relationship()
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=datetime.now()
     )
@@ -133,7 +124,7 @@ class RecordHistory(Base):
     first_name: Mapped[str] = mapped_column(String(64), nullable=True)
     last_name: Mapped[str] = mapped_column(String(64), nullable=True)
     middlname: Mapped[str] = mapped_column(String(64), nullable=True)
-    nicknames: Mapped[List[Nickname]] = relationship()
+    nicknames: Mapped[Optional[dict[str, Any]]] = mapped_column(JSON(none_as_null=True), nullable=True)
     gipsyteam: Mapped[str] = mapped_column(Text(), nullable=True)
     pokerstrategy: Mapped[str] = mapped_column(Text(), nullable=True)
     description: Mapped[str] = mapped_column(Text(), nullable=True)
@@ -155,12 +146,13 @@ class RecordHistory(Base):
     country: Mapped[str] = mapped_column(Text(), nullable=True)
     town: Mapped[str] = mapped_column(Text(), nullable=True)
     address: Mapped[str] = mapped_column(Text(), nullable=True)
+    created_by_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=True)
+    created_by: Mapped["User"] = relationship()
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=datetime.now()
     )
     webmoney_id: Mapped[str] = mapped_column(Text(), nullable=True)
     wallets: Mapped[str] = mapped_column(Text(), nullable=True)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=True)
-    current_version_id: Mapped[int] = mapped_column(ForeignKey("records.id"))
-    current_version: Mapped[Record] = relationship()
+    current_version: Mapped[int] = mapped_column(ForeignKey("records.id"))
     old_id: Mapped[str] = mapped_column(String(), nullable=True)

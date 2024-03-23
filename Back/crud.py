@@ -81,6 +81,7 @@ async def found_add_manager(found_id: int, user_id: int, db: AsyncSession) -> No
         await db.commit()
     except Exception as e:
         await db.rollback()
+        raise e
 
 
 async def get_records_list(
@@ -89,9 +90,9 @@ async def get_records_list(
     records_query = (
         select(models.Record)
         .options(
-            selectinload(models.Record.user),
-            selectinload(models.Record.found),
             selectinload(models.Record.previous_versions),
+            selectinload(models.Record.created_by),
+            selectinload(models.Record.nicknames),
         )
         .order_by(models.Record.created_at.desc())
     )
@@ -102,83 +103,93 @@ async def get_records_list(
     if search_query:
         records_query = records_query.where(
             or_(
-                models.Record.user.has(models.User.username.ilike(f"%{search_query}%")),
-                models.Record.user.has(models.User.email.ilike(f"%{search_query}%")),
+                models.Record.has(models.User.username.ilike(f"%{search_query}%")),
+                models.Record.has(models.User.email.ilike(f"%{search_query}%")),
                 models.Record.arbitrage.ilike(f"%{search_query}%"),
-                models.Record.comment.ilike(f"%{search_query}%"),
+                models.Record.first_name.ilike(f"%{search_query}%"),
+                models.Record.last_name.ilike(f"%{search_query}%"),
+                models.Record.by_fathers_name.ilike(f"%{search_query}%"),
+                models.Record.description.ilike(f"%{search_query}%"),
             )
         )
 
-    records = await db.execute(records_query)
-    return records.scalars().all()
-
+    records = await db.scalars(records_query)
+    return records
 
 async def get_record_by_id(db: AsyncSession, record_id: int) -> models.Record:
     record_by_id_query = (
         select(models.Record)
         .where(models.Record.id == record_id)
         .options(
-            selectinload(models.Record.user),
-            selectinload(models.Record.found),
             selectinload(models.Record.previous_versions),
+            selectinload(models.Record.created_by),
+            selectinload(models.Record.nicknames),
         )
     )
-    record = await db.execute(record_by_id_query)
-    db_record = record.scalars().first()
-    if db_record is None:
-        # Handle the case where the record with the given ID doesn't exist
+    record = await db.scalar(record_by_id_query)
+
+    if record is None:
         raise ObjectNotFound
-    return db_record
+    return record
 
 
 async def create_record(db: AsyncSession, record_data: schemas.RecordCreate):
+    update_data = record_data.model_dump()
+    nicknames = update_data.pop("nicknames")
     create_record_query = insert(models.Record).values(
-        **record_data.create_update_dict()
     )
+
+    
     try:
         created_record_data = await db.execute(create_record_query)
         await db.commit()
         new_record = await get_record_by_id(
             record_id=created_record_data.inserted_primary_key[0], db=db
         )
-        print(new_record)
+        if nicknames:
+            print(nicknames)
+            nicknames_list = [
+                models.Nickname(
+                    room_name=nickname_dict.get("room_name"),
+                    nickname=nickname_dict.get("nickname")             
+                ) 
+                for nickname_dict in nicknames if nickname_dict
+            ]
+            new_record.nicknames.extend(nicknames_list)
+            await db.commit()
+            await db.refresh(new_record)
         return new_record
     except Exception as e:
 
         await db.rollback()
-        print(e)
-    
+        raise(e)
 
+    
 
 async def update_record_by_id(
     db: AsyncSession, record_id: int, new_data: schemas.RecordCreate
 ) -> models.Record:
     record = await get_record_by_id(record_id=record_id, db=db)
 
-    previous_version = models.RecordHistory(
-        user_id=record.user_id,
-        found_id=record.found_id,
-        created_at=record.created_at,
-        updated_at=record.updated_at,
-        arbitrage=record.arbitrage,
-        comment=record.comment,
-        current_version=record.id,
-    )
+    previous_version = models.RecordHistory()
+    previous_version.__dict__.update(record.__dict__)
 
-    update_data = new_data.create_update_dict()
+    previous_version.__dict__.update(record.__dict__)
+    previous_version.nicknames = record.nicknames
+    print(previous_version)
+    await db.add(previous_version)
+
+    await db.commit()
+
+    update_data = new_data.dict(exclude_unset=True)
     update_data["updated_at"] = datetime.now()
-
     for key, value in update_data.items():
         setattr(record, key, value)
 
     record.previous_versions.append(previous_version)
-
     await db.commit()
 
-    await db.refresh(record)
-
     return record
-
 
 async def delete_record_by_id(db: AsyncSession, record_id: int) -> None:
     record_to_delete = await get_record_by_id(db=db, record_id=record_id)
