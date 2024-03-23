@@ -5,10 +5,10 @@ import engine
 from sqlalchemy import select
 
 def migrate_records():
-    with open("databases/arbitrages.nosql", "r", encoding="UTF-8") as founds_json:
-        records_list = founds_json.readlines()
+    with open("databases/arbitrages.nosql", "r", encoding="UTF-8") as arb_json:
+        records_list = arb_json.readlines()
     with engine.sync_session() as db:
-        for record in records_list[:-1]:
+        for record in records_list:
             try:
                 record_dict = json.loads(record)
             except json.JSONDecodeError as e:
@@ -16,6 +16,7 @@ def migrate_records():
                 print(record[:e.colno + 3])
                 # print(e)
                 break
+            print(record)
             case = record_dict.pop("case")[0]
             record_dict["description"] = case.get("descr")
             record_dict["amount"] = case.get("amount")
@@ -26,13 +27,18 @@ def migrate_records():
                 new_arb.first_name = initials.get("firstname")
                 new_arb.last_name = initials.get("lastname")
                 new_arb.middlename = initials.get("middlename")
-
-            
+            fundname = record_dict.pop("fundName")
+            found = db.scalar(select(models.Found).where(models.Found.name == fundname))
             new_arb.old_id = record_dict.pop("id")
+            new_arb.found = found
             nicknames = record_dict.pop("nickname")
             if nicknames:
-                new_arb.nicknames = json.dumps(nicknames[0])
-            
+                nicknames = [models.Nickname(room_name=nickname.get("discipline")) for nickname in nicknames]
+
+            print(nicknames)
+            # if nicknames:
+            #     new_arb.nicknames = json.dumps(nicknames[0])
+            new_arb.nicknames.extend(nicknames)
             webmoney = record_dict.pop("webmoney")
             if webmoney:
                 webmoney = webmoney[0]
@@ -68,8 +74,8 @@ def migrate_records():
                         setattr(new_arb, key, value[0])
                         # print(value[0])
                         continue
-                # if value and isinstance(value, dict):
-                    # print(value)
+                if value and isinstance(value, str):
+                    setattr(new_arb, key, value)
                 
             
             db.add(new_arb)
