@@ -23,6 +23,11 @@ def migrate_records():
                 record_dict["amount"] = case.get("amount")
             initials = record_dict.pop("FIO")
             # print(initials)
+            if initials:
+                initials = initials[0]
+                record_dict["first_name"] = initials.get("firstname")
+                record_dict["last_name"] = initials.get("lastname")
+                record_dict["by_fathers_name"] = initials.get("middlename")
             record_dict["old"] = record_dict.get("old", False)
             new_arb = models.RecordHistory()
             new_arb.old_id = record_dict.pop("id")
@@ -32,12 +37,6 @@ def migrate_records():
                 record_dict.pop("created"),
                 "%Y-%m-%dT%H:%M:%S.%fZ"
             )
-            print(initials)
-            if initials:
-                initials = initials[0]
-                new_arb.first_name = initials.get("firstname")
-                new_arb.last_name = initials.get("lastname")
-                new_arb.by_fathers_name = initials.get("middlename")
             new_arb.updated_at = datetime.strptime(
                 record_dict.pop("updated"),
                 "%Y-%m-%dT%H:%M:%S.%fZ"
