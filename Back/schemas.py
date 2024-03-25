@@ -47,6 +47,11 @@ class UserRead(users_schemas.BaseUser):
     created_at: datetime
 
 
+class UserReadfund(CreateUpdateDictModel):
+    id: int
+    username: str
+    role: Roles
+
 class UserCreate(users_schemas.BaseUserCreate):
     username: str
     password: str
@@ -60,32 +65,26 @@ class UserUpdate(users_schemas.BaseUserUpdate):
     role: Roles
 
 
-class FoundBase(CreateUpdateDictModel):
-    name: Optional[str | None]
-    discord: Optional[str | None]
-    link: Optional[str | None]
-
-
-class FoundCreate(FoundBase): ...
-
-
-class FoundUpdate(FoundBase):
+class FundBase(CreateUpdateDictModel):
     name: Optional[str | None] = None
     discord: Optional[str | None] = None
     link: Optional[str | None] = None
+    email: Optional[str | None] = None
+
+class FundCreate(FundBase): ...
+
+class FundUpdate(FundBase):
     owner_id: Optional[int | None] = None
 
 
-class FoundRead(FoundBase):
+class FundRead(FundBase):
     id: int
-    owner: Optional[UserRead | None] = None
+    owner: Optional[UserReadfund | None] = None
+
+class FundReadRecord(FundBase):
+    ...
 
 
-
-
-
-# class UserRead(users_schemas.CreateUpdateDictModel):
-#     ...
 
 
 class RecordBase(CreateUpdateDictModel):
@@ -110,7 +109,6 @@ class RecordBase(CreateUpdateDictModel):
     webmoney_id: Optional[str | None] = None
     wallets: Optional[str | None] = None
     old: Optional[bool | None] = None
-    found: FoundRead
     nicknameOld: Optional[str | None] = None
     comments: Optional[str | None] = None
     country: Optional[str | None] = None
@@ -123,8 +121,7 @@ class RecordBase(CreateUpdateDictModel):
 class RecordCreate(RecordBase):
     fund_id: int
 
-
-class RecordHistoryRead(RecordBase):
+class RecordHistoryRead(BaseModel):
     id: int
     first_name: Optional[str | None] = None
     last_name: Optional[str | None] = None
@@ -147,7 +144,7 @@ class RecordHistoryRead(RecordBase):
     webmoney_id: Optional[str | None] = None
     wallets: Optional[str | None] = None
     old: Optional[bool | None] = None
-    fund: FoundRead
+    fund: Optional[FundReadRecord | None] = None
     nicknameOld: Optional[str | None] = None
     comments: Optional[str | None] = None
     country: Optional[str | None] = None
@@ -155,12 +152,13 @@ class RecordHistoryRead(RecordBase):
     address: Optional[str | None] = None
     model_config = ConfigDict(from_attributes=False)
     created_at: Optional[datetime | None] = None
-    fund: FoundRead
+
 class RecordRead(RecordBase):
     id: int
     created_at: datetime
     updated_at: Optional[datetime | None] = None
     created_by: Optional[UserRead | None] = None
+    fund: Optional[FundReadRecord | None] = None
     previous_versions: Optional[List[RecordHistoryRead] | None] = None
 
 

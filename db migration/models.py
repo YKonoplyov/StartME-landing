@@ -26,18 +26,18 @@ class Roles(PythonEnum):
     READ_ONLY = "read_only"
 
 
-users_in_founds = Table(
-    "users_founds",
+users_in_funds = Table(
+    "users_funds",
     Base.metadata,
     Column("user_id", ForeignKey("users.id"), primary_key=True),
-    Column("founds_id", ForeignKey("founds.id"), primary_key=True),
+    Column("funds_id", ForeignKey("funds.id"), primary_key=True),
 )
 
-managers_in_founds = Table(
-    "managers_founds",
+managers_in_funds = Table(
+    "managers_funds",
     Base.metadata,
     Column("manager_id", ForeignKey("users.id"), primary_key=True),
-    Column("founds_id", ForeignKey("founds.id"), primary_key=True),
+    Column("funds_id", ForeignKey("funds.id"), primary_key=True),
 )
 
 
@@ -52,27 +52,27 @@ class User(SQLAlchemyBaseUserTable[int], Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default="now()"
     )
-    founds: Mapped[List["Found"]] = relationship(
-        secondary=users_in_founds, back_populates="users"
+    funds: Mapped[List["Fund"]] = relationship(
+        secondary=users_in_funds, back_populates="users"
     )
-    managed_founds: Mapped[List["Found"]] = relationship(
-        secondary=managers_in_founds, back_populates="managers"
+    managed_funds: Mapped[List["Fund"]] = relationship(
+        secondary=managers_in_funds, back_populates="managers"
     )
     old_id: Mapped[str] = mapped_column(String(), nullable=True)
 
 
-class Found(Base):
-    __tablename__ = "founds"
+class Fund(Base):
+    __tablename__ = "funds"
     id: Mapped[int] = mapped_column(Integer(), primary_key=True, index=True)
     name: Mapped[str] = mapped_column(String(), nullable=False)
     email: Mapped[str] = mapped_column(String(), nullable=True)
     discord: Mapped[str] = mapped_column(String(), nullable=True)
     link: Mapped[str] = mapped_column(String(), nullable=True)
     users: Mapped[List["User"]] = relationship(
-        secondary=users_in_founds, back_populates="founds"
+        secondary=users_in_funds, back_populates="funds"
     )
     managers: Mapped[List["User"]] = relationship(
-        secondary=managers_in_founds, back_populates="managed_founds"
+        secondary=managers_in_funds, back_populates="managed_funds"
     )
     owner: Mapped[User] = relationship()
     owner_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=True)
@@ -114,8 +114,8 @@ class Record(Base):
     ecopayz = Column(Text(), nullable=True)
     old = Column(Boolean(), default=False)
     fundName = Column(Text(), nullable=True)
-    found = relationship(Found, back_populates="records")
-    found_id = Column(Integer, ForeignKey("founds.id"))
+    fund = relationship(Fund, back_populates="records")
+    fund_id = Column(Integer, ForeignKey("funds.id"))
     nicknameOld = Column(Text(), nullable=True)
     comments = Column(Text(), nullable=True)
     country = Column(Text(), nullable=True)
@@ -154,8 +154,8 @@ class RecordHistory(Base):
     ecopayz = Column(Text(), nullable=True)
     old = Column(Boolean(), default=False)
     fundName = Column(Text(), nullable=True)
-    fund = relationship(Found, back_populates="records_history")
-    found_id = Column(Integer, ForeignKey("founds.id"))
+    fund = relationship(Fund, back_populates="records_history")
+    fund_id = Column(Integer, ForeignKey("funds.id"))
     nicknameOld = Column(Text(), nullable=True)
     comments = Column(Text(), nullable=True)
     country = Column(Text(), nullable=True)

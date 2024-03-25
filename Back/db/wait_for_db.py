@@ -10,7 +10,7 @@ def wait_for_db() -> None:
             print("trying to connect ...")
             subprocess.run(["alembic", "upgrade", "head"])
             with sync_engine.connect() as db:
-                checked = db.execute(text("SELECT * FROM founds"))
+                checked = db.execute(text("SELECT * FROM funds"))
                 print("Connected")
                 break
         except Exception as e:

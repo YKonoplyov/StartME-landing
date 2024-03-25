@@ -5,8 +5,8 @@ import engine
 from sqlalchemy import select
 
 def migrate_records():
-    with open("databases/arb-history.nosql", "r", encoding="UTF-8") as founds_json:
-        records_list = founds_json.readlines()
+    with open("databases/arb-history.nosql", "r", encoding="UTF-8") as funds_json:
+        records_list = funds_json.readlines()
     with engine.sync_session() as db:
         for record in records_list[:-1]:
             try:

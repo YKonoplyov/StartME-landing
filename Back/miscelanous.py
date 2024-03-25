@@ -7,9 +7,9 @@
 # import requests
 # import db
 # from datetime import datetime
-# from models import users_in_founds, User
+# from models import users_in_funds, User
 
-# from crud import found_add_manager
+# from crud import fund_add_manager
 
 # async def create_user():
 #     try:
@@ -20,7 +20,7 @@
 #         user_data["username"] = "admin"
 #         user_data["email"] = "admin@mail.com"
 #         user_data["contact_fields"] = {"adcd": "1234"}
-#         user_data["founds_ids"] = []
+#         user_data["funds_ids"] = []
 #         user_data["is_superuser"] = 1
 #         user_data["is_active"] = 1
 #         user_data["is_verified"] = 1
@@ -44,4 +44,7 @@
 import json
 
 
-json_str = "{"FIO":[],"skype":[],"nickname":[{"discipline":"Cash HU"}],"gipsyteam":["https://site.gipsyteam.ru/profile/Prostodron"],"pokerstrategy":[],"case":[{"descr":"Залил 2 транша, перестал отписывать, на вопрос почему не отписываешь: "Стыдно". Просить понять и простить, буквально. На связь не выходит. Есть предположение что день перелил на свои акки.","amount":"750euro"}],"google":["bboysnegok@gmail.com"],"mail":["bboysnegok@gmail.com"],"phone":["79258352805"],"vk":[],"facebook":[],"blog":[],"instagram":[],"forum":[],"location":[],"neteller":[],"skrill":[],"ecopayz":[],"webmoney":[],"old":true,"author":"6038014c2528de31d1deca9f","fundName":"Бастион","nicknameOld":"Prostodron","comments":"\" 4276 5218 7802 0704\" - карта сбербанка . Начинает выплату мейкапа с 23.05.2020","created":"2021-03-10T12:30:25.773Z","updated":"2021-03-10T12:30:25.773Z","id":"6048bbe1b2d91b89fa75fa7a"}"
+from users import UserManager
+
+user_manager = UserManager()
+

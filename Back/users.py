@@ -1,4 +1,4 @@
-from typing import Any, Optional
+from typing import Any, Optional, Dict
 
 from fastapi import Depends, Request, exceptions
 from pwdlib import PasswordHash
@@ -12,35 +12,25 @@ from fastapi_users.authentication import (
 )
 from fastapi_users.db import SQLAlchemyUserDatabase
 from fastapi_users import models, exceptions as users_exceptions
+
 import schemas
+from utils import exceptions as custom_exceptions 
 from db.users_db import get_user_db, models as db_models, User, UsersDB
 
 SECRET = "SECRET"
 
 
-# class PasswordHelper(PasswordHelperProtocol):
-#     def __init__(self, password_hash: Optional[PasswordHash] = None) -> None:
-#         if password_hash is None:
-#             self.password_hash = PasswordHash(
-#                 (
-#                     Argon2Hasher(),
-#                     BcryptHasher(),
-#                 )
-#             )
-#         else:
-#             self.password_hash = password_hash  # pragma: no cover
-
-#     def verify_and_update(
-#         self, plain_password: str, hashed_password: str
-#     ) -> Tuple[bool, Union[str, None]]:
-#         return self.password_hash.verify_and_update(plain_password, hashed_password)
-
-#     def hash(self, password: str) -> str:
-#         return self.password_hash.hash(password)
-
-#     def generate(self) -> str:
-#         return secrets.token_urlsafe()
-
+class PasswordHelperV2(PasswordHelper):
+    def __init__(self, password_hash: Optional[PasswordHash] = None) -> None:
+        if password_hash is None:
+            self.password_hash = PasswordHash(
+                (
+                    BcryptHasher(rounds=10, prefix="2a"),
+                )
+            )
+        else:
+            self.password_hash = password_hash  # pragma: no cover
+password_helper = PasswordHelperV2()
 class UserManager(BaseUserManager[db_models.User, IntegerIDMixin]):
     reset_password_token_secret = SECRET
     verification_token_secret = SECRET
@@ -75,15 +65,16 @@ class UserManager(BaseUserManager[db_models.User, IntegerIDMixin]):
         except ValueError as e:
             raise users_exceptions.InvalidID() from e
 
-    async def create_with_founds(
+    async def create_with_funds(
         self,
         user_create: schemas.UserCreate,
+        current_user: User,
         safe: bool = False,
         request: Optional[Request] = None,
     ) -> models.UP:
 
         await self.validate_password(user_create.password, user_create)
-    
+
         existing_user = await self.user_db.get_by_username(user_create.username)
         if existing_user is not None:
             raise users_exceptions.UserAlreadyExists()
@@ -93,16 +84,80 @@ class UserManager(BaseUserManager[db_models.User, IntegerIDMixin]):
             if safe
             else user_create.create_update_dict_superuser()
         )
+        new_user_role = user_dict.get("role")
+        if (
+            current_user.role == db_models.Roles.READ_ONLY 
+            and new_user_role != db_models.Roles.READ_ONLY
+        ):
+            raise custom_exceptions.NotEnoughPermissions()
 
+        if (
+            current_user.role == db_models.Roles.USER 
+            and new_user_role not in [
+                db_models.Roles.READ_ONLY, db_models.Roles.USER
+                ]
+        ):
+            raise custom_exceptions.NotEnoughPermissions()
+        
+        if (
+            current_user.role == db_models.Roles.MANAGER 
+            and new_user_role == db_models.Roles.ADMIN
+        ):
+            raise custom_exceptions.NotEnoughPermissions() 
+        
         password = user_dict.pop("password")
         user_dict["hashed_password"] = self.password_helper.hash(password)
 
-        created_user = await self.user_db.create_user_with_founds(user_dict)
+        created_user = await self.user_db.create_user_with_funds(user_dict)
 
         await self.on_after_register(created_user, request)
 
         return created_user
+    
+    async def update(
+        self,
+        user_update: schemas.UserUpdate,
+        user: models.UP,
+        safe: bool = False,
+        request: Optional[Request] = None,
+    ) -> models.UP:
+        """
+        Update a user.
 
+        Triggers the on_after_update handler on success
+
+        :param user_update: The UserUpdate model containing
+        the changes to apply to the user.
+        :param user: The current user to update.
+        :param safe: If True, sensitive values like is_superuser or is_verified
+        will be ignored during the update, defaults to False
+        :param request: Optional FastAPI request that
+        triggered the operation, defaults to None.
+        :return: The updated user.
+        """
+            
+        if safe:
+            updated_user_data = user_update.create_update_dict()
+        else:
+            updated_user_data = user_update.create_update_dict_superuser()
+        if user.role in [db_models.Roles.USER, db_models.Roles.READ_ONLY]:
+            updated_user.pop("role")
+        updated_user = await self._update(user, updated_user_data)
+        await self.on_after_update(updated_user, updated_user_data, request)
+        return updated_user
+    
+    async def _update(self, user: models.UP, update_dict: Dict[str, Any]) -> models.UP:
+        validated_update_dict = {}
+        for field, value in update_dict.items():
+            if field == "password" and value is not None:
+                await self.validate_password(value, user)
+                validated_update_dict["hashed_password"] = self.password_helper.hash(
+                    value
+                )
+            else:
+                validated_update_dict[field] = value
+        return await self.user_db.update(user, validated_update_dict)
+    
     async def get_all_users(self):
         return await self.user_db.get_all_users()
 
@@ -123,7 +178,7 @@ class UserManager(BaseUserManager[db_models.User, IntegerIDMixin]):
 
 
 async def get_user_manager(user_db: UsersDB = Depends(get_user_db)):
-    yield UserManager(user_db)
+    yield UserManager(user_db, password_helper)
 
 
 bearer_transport = BearerTransport(tokenUrl="auth/jwt/login")

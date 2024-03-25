@@ -18,14 +18,14 @@ async def read_only_or_higher(user=Depends(current_active_user)):
     raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
 
 
-async def regular_or_higher(user=Depends(current_active_user)):
+async def user_or_higher(user=Depends(current_active_user)):
     if user.role in [Roles.USER, Roles.MANAGER, Roles.ADMIN]:
         return user
     raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
 
 
 async def manager_or_higher(
-    user=Depends(current_active_user), db: AsyncSession = Depends(get_async_session)
+    user=Depends(current_active_user)
 ):
     if user.role == Roles.ADMIN:
         return user

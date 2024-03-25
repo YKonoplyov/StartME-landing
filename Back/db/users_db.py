@@ -15,20 +15,20 @@ class UsersDB(SQLAlchemyUserDatabase):
 
     async def get(self, user_id: int) -> User:
         user_statement = (
-            select(User).where(User.id == user_id).options(selectinload(User.founds))
+            select(User).where(User.id == user_id).options(selectinload(User.funds))
         )
         user = await self.session.scalar(user_statement)
         return user
 
     async def update(self, user: User, update_dict: Dict[str, Any]) -> User:
-        found_ids = update_dict.get("foudns_ids")
-        if found_ids:
-            founds_statement = select(models.Found).where(
-                models.Found.id.in_(found_ids)
+        fund_ids = update_dict.get("foudns_ids")
+        if fund_ids:
+            funds_statement = select(models.Fund).where(
+                models.Fund.id.in_(fund_ids)
             )
-            founds = self.session.scalars(founds_statement)
-            for found in founds:
-                user.founds.append(found)
+            funds = self.session.scalars(funds_statement)
+            for fund in funds:
+                user.funds.append(fund)
 
         for key, value in update_dict.items():
             setattr(user, key, value)
@@ -57,19 +57,19 @@ class UsersDB(SQLAlchemyUserDatabase):
     ):
         all_users = await self.session.scalars(
             select(self.user_table).options(
-                selectinload(self.user_table.founds),
-                selectinload(self.user_table.managed_founds),
+                selectinload(self.user_table.funds),
+                selectinload(self.user_table.managed_funds),
             )
         )
         return all_users
 
-    async def create_user_with_founds(self, create_dict: Dict[str, Any]):
-        founds_ids = create_dict.pop("founds_ids", [])
+    async def create_user_with_funds(self, create_dict: Dict[str, Any]):
+        funds_ids = create_dict.pop("funds_ids", [])
         user = self.user_table(**create_dict)
-        founds_statement = select(models.Found).where(models.Found.id.in_(founds_ids))
-        founds = await self.session.scalars(founds_statement)
-        for found in founds:
-            user.founds.append(found)
+        funds_statement = select(models.Fund).where(models.Fund.id.in_(funds_ids))
+        funds = await self.session.scalars(funds_statement)
+        for fund in funds:
+            user.funds.append(fund)
         self.session.add(user)
         await self.session.commit()
         await self.session.refresh(user)

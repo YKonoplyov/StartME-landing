@@ -2,64 +2,64 @@ import json
 import models
 import engine
 from sqlalchemy import select
-def process_managers(found: models.Found, managers_list: list, db: engine.AsyncSession):
+def process_managers(fund: models.Fund, managers_list: list, db: engine.AsyncSession):
     
     if managers_list is None:
-        return found
+        return fund
     managers = db.scalars(select(models.User).where(models.User.old_id.in_(managers_list)))
     for manager in managers:
         manager.role = models.Roles.MANAGER
-        found.managers.append(manager)
-    return found
-def process_users(found: models.Found, users_list: list, db: engine.AsyncSession):
+        fund.managers.append(manager)
+    return fund
+def process_users(fund: models.Fund, users_list: list, db: engine.AsyncSession):
     if users_list is None:
-        return found
+        return fund
     users = db.scalars(select(models.User).where(models.User.old_id.in_(users_list)))
     for user in users:
         user.role = models.Roles.USER
-        found.users.append(user)
-    return found
+        fund.users.append(user)
+    return fund
 
-def process_ro(found: models.Found, ro_list: list, db: engine.AsyncSession):
+def process_ro(fund: models.Fund, ro_list: list, db: engine.AsyncSession):
     if ro_list is None:
-        return found
+        return fund
     ros = db.scalars(select(models.User).where(models.User.old_id.in_(ro_list)))
     
     for ro in ros:
         ro.role = models.Roles.READ_ONLY
-        found.users.append(ro)
-    return found
-def migrate_founds():
-    with open("databases/funds.nosql", "r", encoding="UTF-8") as founds_json:
-        founds_list = founds_json.readlines()
+        fund.users.append(ro)
+    return fund
+def migrate_funds():
+    with open("databases/funds.nosql", "r", encoding="UTF-8") as funds_json:
+        funds_list = funds_json.readlines()
     with engine.sync_session() as db:
-        for found in founds_list:
-            found_dict = json.loads(found)
-            print(found_dict)
+        for fund in funds_list:
+            fund_dict = json.loads(fund)
+            print(fund_dict)
             try:
-                managers = found_dict.pop("managers")
+                managers = fund_dict.pop("managers")
             except KeyError:
                 managers = None
             try:
-                users = found_dict.pop("users")
+                users = fund_dict.pop("users")
             except KeyError:
                 users = None
             try:
-                readonlys = found_dict.pop("readonlys")
+                readonlys = fund_dict.pop("readonlys")
             except KeyError:
                 users = None
-            found = models.Found(
-                name=found_dict.get("name"),
-                email=found_dict.get("email"),
-                link=found_dict.get("site"),
-                old_id=found_dict.get("id")
+            fund = models.Fund(
+                name=fund_dict.get("name"),
+                email=fund_dict.get("email"),
+                link=fund_dict.get("site"),
+                old_id=fund_dict.get("id")
             )
-            found = process_managers(found=found, managers_list=managers, db=db)
-            found = process_users(found=found, users_list=users, db=db)
-            found = process_ro(found=found, ro_list=readonlys, db=db)
+            fund = process_managers(fund=fund, managers_list=managers, db=db)
+            fund = process_users(fund=fund, users_list=users, db=db)
+            fund = process_ro(fund=fund, ro_list=readonlys, db=db)
 
-            db.add(found)
+            db.add(fund)
             db.commit()
 
-migrate_founds()
+migrate_funds()
         

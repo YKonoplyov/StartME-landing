@@ -28,9 +28,9 @@ def migrate_records():
                 new_arb.last_name = initials.get("lastname")
                 new_arb.middlename = initials.get("middlename")
             fundname = record_dict.pop("fundName")
-            found = db.scalar(select(models.Found).where(models.Found.name == fundname))
+            fund = db.scalar(select(models.Fund).where(models.Fund.name == fundname))
             new_arb.old_id = record_dict.pop("id")
-            new_arb.found = found
+            new_arb.fund = fund
             nicknames = record_dict.pop("nickname")
             if nicknames:
                 nicknames = [models.Nickname(room_name=nickname.get("discipline")) for nickname in nicknames]
