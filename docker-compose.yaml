@@ -4,11 +4,11 @@ services:
     restart: always
     image: 'postgres:latest'
     environment:
-      - POSTGRES_PORT: ${POSTGRES_PORT}
-      - POSTGRES_USER: ${POSTGRES_USER}
-      - POSTRGES_HOST: ${POSTRGES_HOST}
-      - POSTGRES_DB: ${POSTGRES_DB}
-      - POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_PORT: ${POSTGRES_PORT}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTRGES_HOST: ${POSTRGES_HOST}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
       - 'postgres:/var/lib/postgresql/data'
     networks:
@@ -19,15 +19,15 @@ services:
       context: ./Back
       dockerfile: Dockerfile
     command: sh -c "uvicorn app:app --host 0.0.0.0 --port 8000 --forwarded-allow-ips='*' --proxy-headers --reload"
+    environment:
+      POSTGRES_PORT: ${POSTGRES_PORT}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTRGES_HOST: ${POSTRGES_HOST}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     restart: always
     volumes:
       - './Back:/app'
-    environment:
-      - POSTGRES_PORT: ${POSTGRES_PORT}
-      - POSTGRES_USER: ${POSTGRES_USER}
-      - POSTRGES_HOST: ${POSTRGES_HOST}
-      - POSTGRES_DB: ${POSTGRES_DB}
-      - POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     depends_on:
       - reputationpg
     networks:
