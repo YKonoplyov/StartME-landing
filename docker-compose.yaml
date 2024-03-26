@@ -1,22 +1,20 @@
 version: '3'
 services:
-  
   reputationpg:
     restart: always
     image: 'postgres:latest'
+    ports:
+      - ':5432'
     env_file:
       - .env
     volumes:
       - 'postgres:/var/lib/postgresql/data'
-    networks:
-      - my_network
-  
+
   api:
-    hostname: api
     build:
       context: ./Back
       dockerfile: Dockerfile
-    command: sh -c "uvicorn app:app --host 0.0.0.0 --port 8000 --forwarded-allow-ips='*' --proxy-headers --reload"
+    command: sh -c "uvicorn app:app --port 8000 --forwarded-allow-ips='*' --proxy-headers --reload"
     restart: always
     volumes:
       - './Back:/app'
@@ -24,8 +22,6 @@ services:
       - .env
     depends_on:
       - reputationpg
-    networks:
-      - my_network
 
   nginx:
     build:
@@ -40,13 +36,8 @@ services:
       - ./letsencrypt:/etc/letsencrypt
       - ./nginx:/etc/nginx/conf.d/
     depends_on:
-      - api      
-    networks:
-      - my_network
+      - api
 
 volumes:
   postgres:
   nginx:
-    
-networks:
-  my_network:
