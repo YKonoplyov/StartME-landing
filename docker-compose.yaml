@@ -3,26 +3,36 @@ services:
   reputationpg:
     restart: always
     image: 'postgres:latest'
-    ports:
-      - ':5432'
-    env_file:
-      - .env
+    environment:
+      - POSTGRES_PORT: ${POSTGRES_PORT}
+      - POSTGRES_USER: ${POSTGRES_USER}
+      - POSTRGES_HOST: ${POSTRGES_HOST}
+      - POSTGRES_DB: ${POSTGRES_DB}
+      - POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
       - 'postgres:/var/lib/postgresql/data'
-
+    networks:
+      - my_network
+  
   api:
     build:
       context: ./Back
       dockerfile: Dockerfile
-    command: sh -c "uvicorn app:app --port 8000 --forwarded-allow-ips='*' --proxy-headers --reload"
+    command: sh -c "uvicorn app:app --host 0.0.0.0 --port 8000 --forwarded-allow-ips='*' --proxy-headers --reload"
     restart: always
     volumes:
       - './Back:/app'
-    env_file:
-      - .env
+    environment:
+      - POSTGRES_PORT: ${POSTGRES_PORT}
+      - POSTGRES_USER: ${POSTGRES_USER}
+      - POSTRGES_HOST: ${POSTRGES_HOST}
+      - POSTGRES_DB: ${POSTGRES_DB}
+      - POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     depends_on:
       - reputationpg
-
+    networks:
+      - my_network
+  
   nginx:
     build:
       context: ./nginx
@@ -41,3 +51,6 @@ services:
 volumes:
   postgres:
   nginx:
+
+networks:
+  my_network:
