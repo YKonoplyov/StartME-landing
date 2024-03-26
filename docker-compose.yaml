@@ -47,6 +47,8 @@ services:
       - ./nginx:/etc/nginx/conf.d/
     depends_on:
       - api
+    networks:
+      - my_network
 
 volumes:
   postgres:
