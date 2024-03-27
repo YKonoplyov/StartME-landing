@@ -1,0 +1,100 @@
+/* === Include your styles here === */
+
+@import "components/header/header";
+@import "@styles/fonts/Montserrat/Montserrat.css";
+@import "components/main/main";
+@import "components/footer/footer";
+
+/* === / Include your styles here === */
+
+/* === Styles === */
+
+#root {
+  display: flex;
+  justify-content: center;
+  min-height: 100vh;
+
+  .App {
+    width: 100%;
+    max-width: 1310px;
+    display: flex;
+    gap: 20px;
+    padding: 8px 0px;
+  }
+}
+
+.scrollmagic-pin-spacer {
+  padding: 0px !important;
+}
+
+h1 {
+  @include Montserrat-700;
+  background: linear-gradient(327deg, #f29000 0%, #f18f00 0.01%, #fccd55 61.26%, #f8b736 100%);
+  background-clip: text;
+  color: transparent;
+  font-size: 72px;
+  text-align: center;
+}
+
+h2 {
+  @include Montserrat-600;
+  font-size: 48px;
+  color: #fff;
+  text-align: center;
+}
+
+h3 {
+  @include Montserrat-400;
+  font-size: 20px;
+  color: #fff;
+  text-align: center;
+}
+
+.subtitle__wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  padding: 30px 0px 40px 0px;
+
+  .subtitle__clarification {
+    @include Montserrat-500;
+    font-size: 16px;
+    text-align: center;
+    background: linear-gradient(327deg, #f29000 0%, #f18f00 0.01%, #fccd55 61.26%, #f8b736 100%);
+    background-clip: text;
+    color: transparent;
+  }
+}
+
+@media (max-width: 800px) {
+  h1 {
+    font-size: 64px;
+  }
+
+  h3 {
+    font-size: 19px;
+  }
+
+  #root {
+
+    .App {
+      padding: 0px;
+    }
+  }
+}
+
+@media (max-width: 600px) {
+  h1 {
+    font-size: 44px;
+  }
+
+  h2 {
+    font-size: 32px;
+  }
+
+  h3 {
+    font-size: 18px;
+  }
+}
+
+/* === / Styles === */

@@ -1,0 +1,281 @@
+/* === Include your styles here === */
+
+@import "sections/home/home";
+@import "sections/about/about";
+@import "sections/contacts/contacts";
+@import "sections/funds/funds";
+@import "sections/table/table";
+
+/* === / Include your styles here === */
+
+/* === Styles === */
+
+.main {
+  display: flex;
+  flex-direction: column;
+  gap: 60px;
+  flex-grow: 1;
+}
+
+.modal {
+  inset: 0;
+  position: fixed;
+  background: rgba(16, 17, 23, .9);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition: .4s all ease;
+
+  .modal__content {
+    border-radius: 20px;
+    background: #000000;
+    transform: scale(.5);
+    transition: .4s all ease;
+    position: relative;
+    @include adaptive-value("padding", 46, 10, 1);
+
+    .form {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      gap: 32px;
+
+      .radio__wrap {
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 20px;
+
+        .radio {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+
+
+          input[type="radio"] {
+            display: none;
+          }
+
+          input[type="radio"]:checked ~ span {
+            border: 1px solid #fd9502;
+          }
+
+          input[type="radio"]:checked ~ p {
+            background: linear-gradient(360deg, #fd9502 0%, #fee100 100%);
+            background-clip: text;
+            color: transparent;
+          }
+
+          input[type="radio"]:checked ~ span:after {
+            transform: scale(1);
+          }
+
+          span {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            border: 1px solid #a9a9a9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: .3s ease all;
+
+            &:after {
+              content: "";
+              width: 12px;
+              height: 12px;
+              display: block;
+              border-radius: 50%;
+              background-image: linear-gradient(360deg, #fd9502 0%, #fee100 100%);
+              transform: scale(0);
+              transition: .3s ease all;
+            }
+          }
+
+          p {
+            padding-top: 3px;
+            @include Montserrat-400;
+            font-size: 16px;
+            color: #a9a9a9;
+            transition: .3s ease all;
+          }
+        }
+      }
+
+      .login__title {
+        width: 100%;
+        @include Montserrat-500;
+        color: #FFFFFF;
+        font-size: 20px;
+      }
+
+      .input__wrap {
+        display: flex;
+        flex-direction: column;
+        position: relative;
+
+        .input {
+          width: 325px;
+          height: 45px;
+          position: relative;
+          background: transparent;
+          border: none;
+          color: #FFFFFF;
+          padding: 0px 0px 0px 24px;
+          font-size: 1em;
+          letter-spacing: .05em;
+          transition: .5s ease all;
+          z-index: 10;
+          @include Montserrat-400;
+
+          &:valid ~ label,
+          &:focus ~ label, {
+            font-size: .85em;
+            top: 0px;
+            left: 12px;
+            opacity: 1;
+          }
+        }
+
+        label {
+          position: absolute;
+          top: 50%;
+          left: 24px;
+          transform: translate(0, -50%);
+          pointer-events: none;
+          color: #a9a9a9;
+          opacity: .9;
+          font-size: 1em;
+          letter-spacing: .05em;
+          transition: .2s ease all;
+          @include Montserrat-400;
+        }
+
+        &:before {
+          content: "";
+          display: block;
+          width: 100%;
+          height: 1px;
+          background: #a9a9a9;
+          position: absolute;
+          bottom: 0px;
+        }
+      }
+
+      .form__btn {
+        background: #000;
+        border: 2px solid #fdb401;
+        border-radius: 100px;
+        color: #fff;
+        font-family: Montserrat-600, sans-serif;
+        font-size: 20px;
+        font-style: normal;
+        width: 100%;
+        padding: 12px 64px;
+      }
+    }
+
+    .modal__btn-close {
+      width: 21px;
+      height: 21px;
+      background: transparent;
+      border: 1.5px solid #a9a9a9;
+      border-radius: 50%;
+      position: absolute;
+      top: 15px;
+      right: 20px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding-top: 0.8px;
+      z-index: 100;
+
+      &:after, &:before {
+        content: "";
+        width: 1px;
+        height: 10px;
+        display: block;
+        background: #a9a9a9;
+        position: absolute;
+      }
+
+      &:after {
+        transform: translateX(0px) rotate(45deg);
+      }
+
+      &:before {
+        transform: translateX(0px) rotate(-45deg);
+      }
+    }
+  }
+}
+
+.modal.active {
+  pointer-events: all;
+  opacity: 1;
+  visibility: visible;
+  z-index: 2000;
+
+  .modal__content {
+    transform: scale(1);
+  }
+}
+
+.btn-hover {
+  transition: .4s ease all;
+}
+
+@media (hover: hover) {
+  .btn-hover:hover {
+    background: #23272c !important;
+  }
+}
+
+@media (hover: none) {
+  .btn-hover:active {
+    background: #23272c !important;
+  }
+}
+
+@media (max-width: 650px) {
+  .modal {
+    .modal__content {
+      width: 100%;
+      height: 100%;
+      border-radius: 0px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+
+      .form {
+        width: 100%;
+        position: relative;
+        z-index: 3;
+
+        .radio__wrap {
+          justify-content: flex-start;
+        }
+
+        .login__title {
+          font-size: 32px;
+          text-align: center;
+        }
+
+        .input__wrap {
+          width: 100%;
+
+          .input {
+            width: 100%;
+          }
+        }
+      }
+    }
+  }
+}
+
+/* === / Styles === */

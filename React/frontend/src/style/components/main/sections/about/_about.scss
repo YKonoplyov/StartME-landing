@@ -1,0 +1,168 @@
+/* === Include your styles here === */
+
+@import "../../../../helpers/mixin/mixin";
+
+/* === / Include your styles here === */
+
+/* === Styles === */
+
+.about__wrap {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0px 10px;
+
+  .about {
+    width: 100%;
+    display: flex;
+    position: relative;
+
+    figure {
+      width: 100%;
+      height: 100%;
+
+      img {
+        width: 100%;
+        height: 100%;
+      }
+    }
+
+    .about__text {
+      position: absolute;
+      width: 40%;
+      top: 50%;
+      left: 0%;
+      transform: translate(0%, -50%);
+      @include Montserrat-400;
+      font-size: 15px;
+      color: #dedede;
+    }
+  }
+
+  .about__dignity-wrap {
+    width: 100%;
+    padding: 25px 0px;
+    @include adaptive-value("padding-left", 46, 1, 1);
+    @include adaptive-value("padding-right", 46, 1, 1);
+    box-shadow: 2px 4px 16px 0 rgba(0, 0, 0, 0.5);
+    background: #000;
+    border-radius: 20px;
+    display: flex;
+    justify-content: space-around;
+    gap: 20px;
+
+    .bb {
+      width: 2px;
+      height: 50%;
+      border-radius: 10px;
+      align-self: center;
+      background: #f2970b;
+    }
+
+    .about__dignity-box {
+      width: 210px;
+
+      .about__dignity-title-wrap {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+
+        img {
+          width: 24px;
+          height: 24px;
+        }
+
+        .about__dignity-title {
+          @include Montserrat-600;
+          font-size: 20px;
+          background: linear-gradient(327deg, #f29000 0%, #f18f00 0.01%, #fccd55 61.26%, #f8b736 100%);
+          background-clip: text;
+          color: transparent;
+          padding-top: 2px;
+        }
+      }
+
+      p {
+        padding-top: 20px;
+        @include Montserrat-400;
+        font-size: 15px;
+        color: #dedede;
+      }
+    }
+  }
+}
+
+@media (min-width: 921px) and (max-width: 1000px) {
+  .about__wrap {
+    .about {
+      .about__text {
+        width: 45%;
+        height: 100%;
+        font-size: 13px;
+      }
+    }
+  }
+}
+
+@media (max-width: 920px) {
+  .about__wrap {
+    .about {
+      flex-direction: column;
+
+      .about__text {
+        width: 100%;
+        position: relative;
+        left: auto;
+        top: auto;
+        transform: none;
+      }
+
+      figure {
+        position: relative;
+        overflow: hidden;
+        height: 208px;
+
+        img {
+          position: absolute;
+          object-fit: contain;
+          height: 275px;
+          top: -8px;
+        }
+      }
+    }
+  }
+}
+
+@media (max-width: 1067px) {
+  .about__wrap {
+    .about__dignity-wrap {
+      flex-direction: column;
+      align-items: center;
+      gap: 35px;
+
+      .bb {
+        width: 100%;
+        height: 2px;
+      }
+
+      .about__dignity-box {
+        width: 100%;
+      }
+
+      .about__dignity-box-sec {
+
+      }
+    }
+  }
+}
+
+@media (max-width: 600px) {
+  .about__wrap {
+    .about__dignity-wrap {
+      padding: 15px !important;
+    }
+  }
+}
+
+/* === / Styles === */

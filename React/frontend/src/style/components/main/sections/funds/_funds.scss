@@ -1,0 +1,22 @@
+/* === Include your styles here === */
+
+@import "../../../../helpers/mixin/mixin";
+
+/* === / Include your styles here === */
+
+/* === Styles === */
+
+.funds__wrap {
+  width: 600px;
+  display: flex;
+  flex-direction: column;
+  padding: 0px 10px;
+
+  .filter-container {
+    display: flex;
+    gap: 20px;
+    padding-bottom: 30px;
+  }
+}
+
+/* === / Styles === */

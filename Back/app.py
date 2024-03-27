@@ -194,12 +194,12 @@ async def register(
     request: Request,
     user_create: schemas.UserCreate,  # type: ignore
     user_manager: UserManager = Depends(get_user_manager),
-    current_user = Depends(permissions.read_only_or_higher)
+    # current_user = Depends(permissions.read_only_or_higher)
 ):
     try:
         created_user = await user_manager.create_with_funds(
             user_create, safe=True, request=request, 
-            current_user=current_user
+            # current_user=current_user
         )
     except users_exceptions.UserAlreadyExists:
         raise HTTPException(

@@ -1,0 +1,27 @@
+/* === Fonts === */
+
+@font-face {
+    font-family: 'Montserrat-400';
+    src: url("../../../fonts/Montserrat/Montserrat-Regular.ttf") format('truetype');
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Montserrat-500';
+    src: url("../../../fonts/Montserrat/Montserrat-Medium.ttf") format('truetype');
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Montserrat-600';
+    src: url("../../../fonts/Montserrat/Montserrat-SemiBold.ttf") format('truetype');
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Montserrat-700';
+    src: url("../../../fonts/Montserrat/Montserrat-Bold.ttf") format('truetype');
+    font-display: swap;
+}
+
+/* === / Fonts === */

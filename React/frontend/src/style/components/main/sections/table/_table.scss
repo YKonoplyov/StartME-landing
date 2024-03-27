@@ -1,0 +1,373 @@
+/* === Include your styles here === */
+
+@import "../../../../helpers/mixin/mixin";
+
+/* === / Include your styles here === */
+
+/* === Styles === */
+
+.table__top-wrap {
+  display: flex;
+  justify-content: space-between;
+
+  .table__top {
+    display: flex;
+    gap: 8px;
+
+    .input__search {
+      padding: 0px 0px 0px 10px;
+      width: 250px;
+      @include Montserrat-500;
+      color: #FFFFFF;
+      border-radius: 10px;
+      background: #000000;
+      transition: all .4s ease;
+    }
+
+    .input__search-op {
+      opacity: 0;
+    }
+
+    .table__top-btn {
+      width: 48px;
+      height: 48px;
+      background: #000;
+      border-radius: 10px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+
+      img {
+        width: 24px;
+        height: 24px;
+        transition: all .4s ease;
+      }
+
+      &:hover {
+        img {
+          filter: invert(66%) sepia(64%) saturate(517%) hue-rotate(352deg) brightness(105%) contrast(94%);
+        }
+      }
+    }
+  }
+}
+
+.table {
+  width: fit-content;
+  min-width: 1236px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  @include Montserrat-500;
+  color: #ffffff;
+
+  .table__header-wrap {
+
+
+    .table__header {
+
+      .table__headers {
+
+        &:first-child {
+          width: 134px;
+          padding-right: 5px;
+        }
+
+        &:nth-child(2) {
+          width: 110px;
+          padding-right: 5px;
+        }
+
+        &:nth-child(3) {
+          width: 110px;
+          padding-right: 5px;
+        }
+
+        &:nth-child(4) {
+          width: 155px;
+          padding-right: 5px;
+        }
+
+        &:nth-child(5) {
+          width: 137px;
+          padding-right: 5px;
+        }
+
+        &:nth-child(6) {
+          width: 155px;
+          padding-right: 5px;
+        }
+
+        &:nth-child(7) {
+          width: 155px;
+          padding-right: 5px;
+        }
+
+        &:nth-child(8) {
+          width: 125px;
+          padding-right: 5px;
+        }
+
+        &:last-child {
+          width: 155px;
+          padding-right: 5px;
+        }
+      }
+    }
+  }
+
+  .table__body-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+
+    .table__body {
+      cursor: pointer;
+      background: #000000;
+      height: 60px;
+      border-radius: 10px;
+
+      .table__body-cell {
+        height: 60px;
+        text-align: center;
+        font-size: 15px;
+
+        &:first-child {
+          width: 134px;
+          padding-right: 5px;
+        }
+
+        &:nth-child(2) {
+          width: 110px;
+          padding-right: 5px;
+        }
+
+        &:nth-child(3) {
+          width: 110px;
+          padding-right: 5px;
+        }
+
+        &:nth-child(4) {
+          width: 155px;
+          padding-right: 5px;
+        }
+
+        &:nth-child(5) {
+          width: 137px;
+          padding-right: 5px;
+        }
+
+        &:nth-child(6) {
+          width: 155px;
+          padding-right: 5px;
+        }
+
+        &:nth-child(7) {
+          width: 155px;
+          padding-right: 5px;
+        }
+
+        &:nth-child(8) {
+          width: 125px;
+          padding-right: 5px;
+        }
+
+        &:last-child {
+          width: 155px;
+          padding-right: 5px;
+        }
+      }
+    }
+  }
+}
+
+.truncate {
+  max-width: 150px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.table__btn {
+  background: #000;
+  margin-top: 25px;
+  border: 2px solid #fdb401;
+  border-radius: 100px;
+  color: #fff;
+  font-family: Montserrat-600, sans-serif;
+  font-size: 20px;
+  font-style: normal;
+  height: 50px;
+  width: 195px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.select {
+
+  &__control {
+    border-radius: 10px !important;
+    width: 280px !important;
+    height: 48px !important;
+    background: #000000 !important;
+    border: none !important;
+    box-shadow: none !important;
+    transition: all .4s ease !important;
+
+    &-is-focused {
+      box-shadow: none !important;
+    }
+
+    &--menu-is-open {
+      box-shadow: none !important;
+      border-radius: 10px 10px 0px 0px !important;
+
+      .select__indicator {
+        transform: rotate(180deg);
+      }
+    }
+  }
+
+  &__value-container {
+    padding: 0px 0px 0px 15px !important;
+  }
+
+  &__single-value {
+    @include Montserrat-500;
+    color: #FFFFFF !important;
+  }
+
+  &__indicator-separator {
+    display: none !important;
+  }
+
+  &__indicator:hover {
+    color: #FFFFFF !important;
+  }
+
+  &__indicator {
+    transition: all .4s ease !important;
+  }
+
+  &__menu {
+    background: #000000 !important;
+    margin: 0px !important;
+    width: 280px !important;
+    box-shadow: none !important;
+    border-radius: 0px 0px 10px 10px !important;
+  }
+
+  &__menu-list {
+    padding: 0px !important;
+  }
+
+  &__option {
+    @include Montserrat-500;
+    color: #FFFFFF !important;
+    padding: 0px 0px 0px 15px !important;
+    height: 48px !important;
+    display: flex !important;
+    align-items: center !important;
+    background: transparent !important;
+    transition: all .4s ease !important;
+
+    &:last-child {
+      border-radius: 0px 0px 10px 10px !important;
+    }
+  }
+
+  &__option:hover {
+    background: #23272c !important;
+  }
+
+  &__option-is-focused:hover {
+  }
+}
+
+.table__modal-title {
+  @include Montserrat-500;
+  color: #FFFFFF;
+  font-size: 20px;
+  padding-bottom: 25px;
+  text-align: center;
+}
+
+.table__modal-form-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+
+  .table__modal-row {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    justify-content: space-between;
+    gap: 10px;
+
+    .table__modal-cell-title {
+      @include Montserrat-500;
+      font-size: 16px;
+      color: #FFFFFF;
+    }
+
+    .table__modal-cell {
+      width: 500px;
+      min-height: 49px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      @include Montserrat-500;
+      font-size: 15px;
+      background: #101117;
+      border-radius: 8px;
+      color: #FFFFFF;
+      padding: 5px 20px;
+      text-align: center;
+    }
+  }
+}
+
+.pagination__wrap {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+
+  .pagination__btn-op {
+    width: 40px;
+    height: 40px;
+    @include Montserrat-500;
+    font-size: 20px;
+    background: transparent;
+    color: #FFFFFF;
+  }
+
+  .active {
+    background: #000;
+    border-radius: 4px;
+    color: #fee100;
+  }
+
+  .pagination__btn {
+    height: 27px;
+    width: 12px;
+    background: transparent;
+
+    img {
+      width: 100%;
+      height: 100%;
+    }
+
+    &:last-child {
+      transform: rotate(180deg);
+    }
+  }
+
+  .disabled {
+    opacity: .3;
+  }
+}
+
+/* === / Styles === */

@@ -1,0 +1,131 @@
+/* === Include your styles here === */
+
+@import "../../../../helpers/mixin/mixin";
+
+/* === / Include your styles here === */
+
+/* === Styles === */
+
+.contact__wrap {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0px 10px;
+
+  .contact__box {
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(356px, 1fr));
+    gap: 20px;
+
+    .contact {
+      height: 213px;
+      border-radius: 20px;
+      box-shadow: 2px 4px 16px 0 rgba(0, 0, 0, 0.5);
+      background: #000;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 24px;
+      padding: 15px;
+
+      .contact__text-wrap {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 12px;
+
+        .contact__title {
+          @include Montserrat-600;
+          font-size: 20px;
+          background: linear-gradient(327deg, #f29000 0%, #f18f00 0.01%, #fccd55 61.26%, #f8b736 100%);
+          background-clip: text;
+          color: transparent;
+          text-align: center;
+        }
+
+        .contact__text {
+          @include Montserrat-400;
+          font-size: 15px;
+          color: #dedede;
+          text-align: center;
+        }
+      }
+
+      .contact__btn {
+        background: #000;
+        border: 2px solid #fdb401;
+        border-radius: 100px;
+        color: #fff;
+        @include Montserrat-400;
+        font-size: 20px;
+        padding: 12px 64px;
+      }
+
+      .modal {
+        padding: 10px;
+
+        .modal__content {
+          width: 800px;
+          flex-direction: column;
+
+          .subtitle__wrap {
+            padding: 0px 0px 40px 0px;
+          }
+
+          figure {
+            position: absolute;
+            inset: 0;
+
+            img {
+              width: 100%;
+              height: 100%;
+            }
+          }
+
+          .form {
+            @include adaptive-value("padding-left", 15, 10, 1);
+            @include adaptive-value("padding-right", 15, 10, 1);
+
+            .form__contact {
+              width: 100%;
+              display: grid;
+              grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+              gap: 32px;
+
+              .input__wrap {
+                .input {
+                  width: 100%;
+                }
+              }
+            }
+
+            .input__wrap {
+              width: 100%;
+
+              .input {
+                width: 100%;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+@media (max-width: 650px) {
+  .contact__wrap {
+    .contact__box {
+      .contact {
+        .modal {
+          padding: 0px;
+        }
+      }
+    }
+  }
+}
+
+/* === / Styles === */

@@ -1,0 +1,70 @@
+/* === Include your styles here === */
+
+@import "../../helpers/mixin/mixin";
+
+/* === / Include your styles here === */
+
+/* === Styles === */
+
+.footer {
+  width: 100%;
+  padding: 30px 0px 80px 0px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 48px;
+
+  .footer__column {
+    .footer__contact-list {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 32px;
+
+      li {
+        .footer__contact-link {
+          @include Montserrat-400;
+          font-size: 20px;
+          color: #FFFFFF;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+
+          img {
+            width: 32px;
+            height: 32px;
+          }
+        }
+      }
+    }
+
+    .footer__contact-list-social {
+      flex-direction: row;
+      gap: 16px;
+
+      li {
+        .footer__contact-link {
+          img {
+            width: 40px;
+            height: 40px;
+          }
+        }
+      }
+    }
+  }
+
+  .footer__text {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 48px;
+
+    p {
+      @include Montserrat-400;
+      font-size: 16px;
+      color: #FFFFFF;
+    }
+  }
+}
+
+/* === / Styles === */

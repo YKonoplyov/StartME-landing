@@ -46,8 +46,25 @@ services:
       - ./nginx:/etc/nginx/conf.d/
     depends_on:
       - api
+      - client
     networks:
       - my_network
+
+  client:
+    build: 
+      context: ./React
+      dockerfile: Dockerfile
+    volumes:
+      - ./React:/app
+    depends_on:
+      - api
+    networks:
+      - my_network
+    environment:
+      - REACT_APP_API_HOST=www.covershot.app
+      - HOST=client
+
+
 
 volumes:
   postgres:
