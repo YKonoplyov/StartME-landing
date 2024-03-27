@@ -73,7 +73,7 @@ function MainTable() {
                 ...newUserData,
                 createdAt: createdAt
             }
-            const response = await fetch('/addUser', {
+            const response = await fetch('/api/v1/register', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
