@@ -10,15 +10,17 @@ from fastapi_users.authentication import (
     BearerTransport,
     JWTStrategy,
 )
+
 from fastapi_users.db import SQLAlchemyUserDatabase
 from fastapi_users import models, exceptions as users_exceptions
 
 import schemas
 from utils import exceptions as custom_exceptions 
+from auth import BearerTransportRefresh, AuthenticationBackendRefresh
 from db.users_db import get_user_db, models as db_models, User, UsersDB
 
 SECRET = "SECRET"
-
+REFRESH_SECRET = "REFRESH_SECRET"
 
 class PasswordHelperV2(PasswordHelper):
     def __init__(self, password_hash: Optional[PasswordHash] = None) -> None:
@@ -34,6 +36,8 @@ password_helper = PasswordHelperV2()
 class UserManager(BaseUserManager[db_models.User, IntegerIDMixin]):
     reset_password_token_secret = SECRET
     verification_token_secret = SECRET
+    
+    
     async def authenticate(
         self, credentials: dict
     ) -> Optional[models.UP]:
@@ -181,19 +185,20 @@ async def get_user_manager(user_db: UsersDB = Depends(get_user_db)):
     yield UserManager(user_db, password_helper)
 
 
-bearer_transport = BearerTransport(tokenUrl="auth/jwt/login")
-
+bearer_transport_refresh = BearerTransportRefresh(tokenUrl="auth/jwt/refresh")
 
 def get_jwt_strategy() -> JWTStrategy:
-    return JWTStrategy(secret=SECRET, lifetime_seconds=3600)
+    return JWTStrategy(secret=SECRET, lifetime_seconds=300)
 
+def get_refresh_jwt_strategy() -> JWTStrategy:
+    return JWTStrategy(secret=REFRESH_SECRET, lifetime_seconds=259200)
 
-auth_backend = AuthenticationBackend(
+auth_backend = AuthenticationBackendRefresh(
     name="jwt",
-    transport=bearer_transport,
+    transport=bearer_transport_refresh,
     get_strategy=get_jwt_strategy,
+    get_refresh_strategy=get_refresh_jwt_strategy,
 )
 
-fastapi_users = FastAPIUsers[db_models.User, int](get_user_manager, [auth_backend])
+fastapi_users = FastAPIUsers[User, int](get_user_manager, [auth_backend])
 
-current_active_user = fastapi_users.current_user(active=True)

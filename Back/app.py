@@ -1,4 +1,4 @@
-from typing import List
+from typing import Tuple
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import IntegrityError
@@ -7,9 +7,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi_users.router import common
 from fastapi_users import exceptions as users_exceptions
 from fastapi_users import models as fast_users_models
+from fastapi_users.authentication import Strategy
 from fastapi_pagination import Page, add_pagination, paginate
 from fastapi_pagination.utils import disable_installed_extensions_check
-
 import crud
 import schemas
 import routers
@@ -155,6 +155,18 @@ app.include_router(
     fastapi_users.get_auth_router(auth_backend), prefix="/auth/jwt", tags=["auth"]
 )
 
+@app.post(
+        "/refresh",
+    )
+async def refresh(
+    refresh_token: str, # TODO: changer refresh token transport
+    refresh_strategy: Strategy[fast_users_models.UP, fast_users_models.ID] = Depends(auth_backend.get_refresh_strategy),
+    strategy: Strategy[fast_users_models.UP, fast_users_models.ID] = Depends(auth_backend.get_strategy),
+    user_manager: UserManager = Depends(get_user_manager)
+):
+    user = await refresh_strategy.read_token(refresh_token, user_manager)
+    response = await auth_backend.login(strategy, user)
+    return response
 
 @app.post(
     "/register",

@@ -5,3 +5,5 @@ Front/
 databases/
 letsencrypt/
 data/
+run_app.py
+*_dev*
