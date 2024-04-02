@@ -72,7 +72,7 @@ class UserManager(BaseUserManager[db_models.User, IntegerIDMixin]):
     async def create_with_funds(
         self,
         user_create: schemas.UserCreate,
-        # current_user: User,
+        current_user: User,
         safe: bool = False,
         request: Optional[Request] = None,
     ) -> models.UP:
@@ -89,25 +89,25 @@ class UserManager(BaseUserManager[db_models.User, IntegerIDMixin]):
             else user_create.create_update_dict_superuser()
         )
         new_user_role = user_dict.get("role")
-        # if (
-        #     current_user.role == db_models.Roles.READ_ONLY 
-        #     and new_user_role != db_models.Roles.READ_ONLY
-        # ):
-        #     raise custom_exceptions.NotEnoughPermissions()
+        if (
+            current_user.role == db_models.Roles.READ_ONLY 
+            and new_user_role != db_models.Roles.READ_ONLY
+        ):
+            raise custom_exceptions.NotEnoughPermissions()
 
-        # if (
-        #     current_user.role == db_models.Roles.USER 
-        #     and new_user_role not in [
-        #         db_models.Roles.READ_ONLY, db_models.Roles.USER
-        #         ]
-        # ):
-        #     raise custom_exceptions.NotEnoughPermissions()
+        if (
+            current_user.role == db_models.Roles.USER 
+            and new_user_role not in [
+                db_models.Roles.READ_ONLY, db_models.Roles.USER
+                ]
+        ):
+            raise custom_exceptions.NotEnoughPermissions()
         
-        # if (
-        #     current_user.role == db_models.Roles.MANAGER 
-        #     and new_user_role == db_models.Roles.ADMIN
-        # ):
-        #     raise custom_exceptions.NotEnoughPermissions() 
+        if (
+            current_user.role == db_models.Roles.MANAGER 
+            and new_user_role == db_models.Roles.ADMIN
+        ):
+            raise custom_exceptions.NotEnoughPermissions() 
         
         password = user_dict.pop("password")
         user_dict["hashed_password"] = self.password_helper.hash(password)
@@ -185,7 +185,7 @@ async def get_user_manager(user_db: UsersDB = Depends(get_user_db)):
     yield UserManager(user_db, password_helper)
 
 
-bearer_transport_refresh = BearerTransportRefresh(tokenUrl="auth/jwt/refresh")
+bearer_transport_refresh = BearerTransportRefresh(tokenUrl="auth/jwt/login")
 
 def get_jwt_strategy() -> JWTStrategy:
     return JWTStrategy(secret=SECRET, lifetime_seconds=300)

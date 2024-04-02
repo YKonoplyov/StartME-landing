@@ -150,13 +150,10 @@ async def add_manager(
         )
     return Response(status_code=status.HTTP_200_OK)
 
-
-app.include_router(
-    fastapi_users.get_auth_router(auth_backend), prefix="/auth/jwt", tags=["auth"]
-)
-
 @app.post(
-        "/refresh",
+        "/auth/jwt/refresh",
+        name=f"auth:{auth_backend.name}.refresh",
+        tags=["auth"]
     )
 async def refresh(
     refresh_token: str, # TODO: changer refresh token transport
@@ -167,6 +164,11 @@ async def refresh(
     user = await refresh_strategy.read_token(refresh_token, user_manager)
     response = await auth_backend.login(strategy, user)
     return response
+
+app.include_router(
+    fastapi_users.get_auth_router(auth_backend), prefix="/auth/jwt", tags=["auth"]
+)
+
 
 @app.post(
     "/register",
