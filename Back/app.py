@@ -29,7 +29,6 @@ origins = [
     "https://nginx", 
     "http://client",
     "https://client",
-    # "*",
 ]
 
 app.add_middleware(

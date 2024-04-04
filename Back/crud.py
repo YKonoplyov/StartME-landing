@@ -191,7 +191,6 @@ async def update_record_by_id(
     for attr in ['first_name', 'last_name', 'middlename', 'gipsyteam', 'pokerstrategy', 'description', 'amount', 'google', 'mail', 'vk', 'facebook', 'blog', 'instagram', 'forum', 'neteller', 'skrill', 'ecopayz', 'old', 'fundName', 'nicknameOld', 'comments', 'country', 'town', 'address', 'created_by_id', 'created_at', 'webmoney_id', 'wallets', 'updated_at', 'old_id']:
         setattr(previous_version, attr, getattr(record, attr))
 
-    # Create a copy of the list of nicknames
     nicknames_copy = list(record.nicknames)
     
     for old_nickname in nicknames_copy:
@@ -223,7 +222,6 @@ async def update_record_by_id(
 
 async def delete_record_by_id(db: AsyncSession, record_id: int) -> None:
     record_to_delete = await get_record_by_id(db=db, record_id=record_id)
-    print(record_to_delete.id)
     await db.delete(record_to_delete)
 
     await db.commit()
