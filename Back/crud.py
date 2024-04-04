@@ -223,7 +223,7 @@ async def update_record_by_id(
 
 async def delete_record_by_id(db: AsyncSession, record_id: int) -> None:
     record_to_delete = await get_record_by_id(db=db, record_id=record_id)
+    print(record_to_delete.id)
+    await db.delete(record_to_delete)
 
-    db.delete(record_to_delete)
-
-    db.commit()
+    await db.commit()

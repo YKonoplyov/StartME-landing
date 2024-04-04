@@ -25,9 +25,12 @@ disable_installed_extensions_check()
 app = FastAPI(root_path="/api/v1")
 
 origins = [
-    "http://nginx",
-    "https://nginx"
-    ]
+    "http://nginx", 
+    "https://nginx", 
+    "http://client",
+    "https://client",
+    # "*",
+]
 
 app.add_middleware(
     CORSMiddleware,
