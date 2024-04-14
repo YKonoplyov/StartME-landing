@@ -29,6 +29,7 @@ origins = [
     "https://nginx", 
     "http://client",
     "https://client",
+    "*",
 ]
 
 app.add_middleware(
@@ -158,12 +159,12 @@ async def add_manager(
         tags=["auth"]
     )
 async def refresh(
-    refresh_token: str, # TODO: changer refresh token transport
+    refresh_token_data: schemas.RefreshToken,
     refresh_strategy: Strategy[fast_users_models.UP, fast_users_models.ID] = Depends(auth_backend.get_refresh_strategy),
     strategy: Strategy[fast_users_models.UP, fast_users_models.ID] = Depends(auth_backend.get_strategy),
     user_manager: UserManager = Depends(get_user_manager)
 ):
-    user = await refresh_strategy.read_token(refresh_token, user_manager)
+    user = await refresh_strategy.read_token(refresh_token_data.refresh_token, user_manager)
     response = await auth_backend.login(strategy, user)
     return response
 

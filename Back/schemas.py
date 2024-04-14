@@ -14,6 +14,8 @@ def model_dump(model: BaseModel, *args, **kwargs) -> Dict[str, Any]:
 def model_validate(schema: BaseModel, obj: Any, *args, **kwargs) -> BaseModel:
     return schema.model_validate(obj, *args, **kwargs)
 
+class RefreshToken(BaseModel):
+    refresh_token: str
 
 class CreateUpdateDictModel(BaseModel):
     def create_update_dict(self):
