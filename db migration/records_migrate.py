@@ -8,7 +8,7 @@ def migrate_records():
     with open("databases/arbitrages.nosql", "r", encoding="UTF-8") as arb_json:
         records_list = arb_json.readlines()
     with engine.sync_session() as db:
-        for record in records_list:
+        for record in records_list[:10]:
             try:
                 record_dict = json.loads(record)
             except json.JSONDecodeError as e:
@@ -31,14 +31,13 @@ def migrate_records():
             fund = db.scalar(select(models.Fund).where(models.Fund.name == fundname))
             new_arb.old_id = record_dict.pop("id")
             new_arb.fund = fund
-            nicknames = record_dict.pop("nickname")
-            if nicknames:
-                nicknames = [models.Nickname(room_name=nickname.get("discipline")) for nickname in nicknames]
+            room_name = record_dict.pop("nickname")
+            if room_name:
+                print(room_name)
+                new_arb.room_name = room_name[0].get("discipline")
 
-            print(nicknames)
             # if nicknames:
             #     new_arb.nicknames = json.dumps(nicknames[0])
-            new_arb.nicknames.extend(nicknames)
             webmoney = record_dict.pop("webmoney")
             if webmoney:
                 webmoney = webmoney[0]
