@@ -101,10 +101,7 @@ async def get_records_list(
     records_query = (
         select(models.Record)
         .options(
-            selectinload(models.Record.nicknames),
-            selectinload(models.Record.previous_versions).options(
-                selectinload(models.RecordHistory.nicknames)
-            ),
+            selectinload(models.Record.previous_versions),
             selectinload(models.Record.created_by),
             selectinload(models.Record.fund),
         )
@@ -133,8 +130,7 @@ async def get_record_by_id(db: AsyncSession, record_id: int) -> models.Record:
         select(models.Record)
         .where(models.Record.id == record_id)
         .options(
-            selectinload(models.Record.nicknames),
-            selectinload(models.Record.previous_versions).options(selectinload(models.RecordHistory.nicknames)),
+            selectinload(models.Record.previous_versions),
             selectinload(models.Record.created_by),
             selectinload(models.Record.fund),
         )
@@ -148,8 +144,7 @@ async def get_record_by_id(db: AsyncSession, record_id: int) -> models.Record:
 
 
 async def create_record(db: AsyncSession, record_data: schemas.RecordCreate):
-    record_data = record_data.model_dump()
-    nicknames = record_data.pop("nicknames")
+    record_data = record_data.create_update_dict()
     fund = await get_fund_by_id(db=db, fund_id=record_data.pop("fund_id"))
     create_record_query = insert(models.Record).values(
         record_data
@@ -163,20 +158,12 @@ async def create_record(db: AsyncSession, record_data: schemas.RecordCreate):
             record_id=created_record_data.inserted_primary_key[0], db=db
         )
         new_record.fund = fund
-        if nicknames:
-            nicknames_list = [
-                models.Nickname(
-                    room_name=nickname_dict.get("room_name"),
-                    nickname=nickname_dict.get("nickname")             
-                ) 
-                for nickname_dict in nicknames if nickname_dict
-            ]
-            new_record.nicknames.extend(nicknames_list)
-            await db.commit()
-            await db.refresh(new_record)
+        print(new_record)
+        await db.commit()
+        await db.refresh(new_record)
         return new_record
     except Exception as e:
-
+        print(e)
         await db.rollback()
         raise(e)
 
@@ -188,30 +175,16 @@ async def update_record_by_id(
     record = await get_record_by_id(record_id=record_id, db=db)
 
     previous_version = models.RecordHistory()
-    for attr in ['first_name', 'last_name', 'middlename', 'gipsyteam', 'pokerstrategy', 'description', 'amount', 'google', 'mail', 'vk', 'facebook', 'blog', 'instagram', 'forum', 'neteller', 'skrill', 'ecopayz', 'old', 'fundName', 'nicknameOld', 'comments', 'country', 'town', 'address', 'created_by_id', 'created_at', 'webmoney_id', 'wallets', 'updated_at', 'old_id']:
+    for attr in ["first_name", "last_name", "middlename", "gipsyteam", "pokerstrategy", "description", "amount", "google", "mail", "vk", "facebook", "blog", "instagram", "forum", "neteller", "skrill", "ecopayz", "old", "fundName", "nicknameOld", "comments", "country", "town", "address", "created_by_id", "created_at", "webmoney_id", "wallets", "updated_at", "old_id", "room_name"]:
         setattr(previous_version, attr, getattr(record, attr))
-
-    nicknames_copy = list(record.nicknames)
     
-    for old_nickname in nicknames_copy:
-        previous_version.nicknames.append(old_nickname)
 
     db.add(previous_version)
     update_data = new_data.create_update_dict()
-    try:
-        updated_nicknames_dicts = update_data.pop("nicknames")
-    except:
-        updated_nicknames_dicts = None
     update_data["updated_at"] = datetime.now()
     
     for key, value in update_data.items():
         setattr(record, key, value)
-
-    if updated_nicknames_dicts:
-        record.nicknames.clear()
-        updated_nicknames = [models.Nickname(**nickname_dict) for nickname_dict in updated_nicknames_dicts if nickname_dict]
-        record.nicknames.clear()
-        record.nicknames.extend(updated_nicknames)
         
     record.previous_versions.append(previous_version)
 

@@ -17,8 +17,9 @@ import permissions
 from db.users_db import User
 from db.engine import get_async_session
 from users import auth_backend, fastapi_users, UserManager, get_user_manager
+from utils import mail_module
 from utils.exceptions import ObjectNotfund, Forbidden, NotEnoughPermissions
-
+from test_data import email_to, text
 
 disable_installed_extensions_check()
 
@@ -333,5 +334,26 @@ async def delete_record_by_id(
         raise HTTPException(status_code=400, detail="No such record")
     return Response(status_code=204)
 
+@app.post("/send_email")
+async def send_email(data: schemas.UserMail) -> Response:
+    mu = mail_module.MailUtil()
+    u_data = data.dict()
+    try:
+        mu.send_message(
+            u_data.get("subject"),
+            email_to,
+            text.format(
+                u_data.get("user_choice"),
+                u_data.get("name"),
+                u_data.get("email"),
+                u_data.get("message"),
+            ),
+        )
+    except Exception as e:
+        print(e)
+    return Response(
+        status_code=status.HTTP_200_OK,
+        content={"message": "Email has been sent"},
+    )
 
 add_pagination(app)

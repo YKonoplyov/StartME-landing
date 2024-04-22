@@ -1,6 +1,6 @@
 from datetime import datetime
 from typing import Any, Dict, Optional, List
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, EmailStr
 
 from fastapi_users import schemas as users_schemas
 
@@ -31,15 +31,15 @@ class CreateUpdateDictModel(BaseModel):
     def convert_fields_to_optional(self):
         return {k: Optional[v] for k, v in self.__annotations__.items()}
 
-class NicknameBase(CreateUpdateDictModel):
-    room_name: Optional[str | None] = None
-    nickname: Optional[str | None] = None
-    model_config = ConfigDict(from_attributes=False)
-class NicknameCreate(NicknameBase):
-    ...
+# class NicknameBase(CreateUpdateDictModel):
+#     room_name: Optional[str | None] = None
+#     nickname: Optional[str | None] = None
+#     model_config = ConfigDict(from_attributes=False)
+# class NicknameCreate(NicknameBase):
+#     ...
 
-class NicknameRead(NicknameBase):
-    ...
+# class NicknameRead(NicknameBase):
+#     ...
 
 class UserRead(users_schemas.BaseUser):
     id: int
@@ -93,7 +93,7 @@ class RecordBase(CreateUpdateDictModel):
     first_name: Optional[str | None] = None
     last_name: Optional[str | None] = None
     middlename: Optional[str | None] = None
-    nicknames: Optional[List[NicknameRead|None]] = None
+    room_name: Optional[str | None] = None
     gipsyteam: Optional[str | None] = None
     pokerstrategy: Optional[str | None] = None
     description: Optional[str | None] = None
@@ -128,7 +128,7 @@ class RecordHistoryRead(BaseModel):
     first_name: Optional[str | None] = None
     last_name: Optional[str | None] = None
     middlename: Optional[str | None] = None
-    nicknames: Optional[List[NicknameRead|None]] = None
+    room_name: Optional[str | None] = None
     gipsyteam: Optional[str | None] = None
     pokerstrategy: Optional[str | None] = None
     description: Optional[str | None] = None
@@ -165,3 +165,10 @@ class RecordRead(RecordBase):
 
 
 class RecordUpdate(RecordBase): ...
+
+class UserMail(BaseModel):
+    user_choice: str
+    name: str
+    email: EmailStr
+    subject: str
+    message: str
