@@ -1,13 +1,14 @@
 from typing import Type
 
-from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
-
+from fastapi_pagination import Page, paginate
 from fastapi_users import exceptions, models, schemas
 from fastapi_users.authentication import Authenticator
-from fastapi_users.manager import BaseUserManager, UserManagerDependency
 from fastapi_users.router.common import ErrorCode, ErrorModel
-from fastapi_pagination import Page, paginate
+from fastapi_users.manager import BaseUserManager, UserManagerDependency
+from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
+
 import permissions
+
 
 def get_users_router(
     get_user_manager: UserManagerDependency[models.UP, models.ID],
@@ -21,9 +22,6 @@ def get_users_router(
 
     get_current_active_user = authenticator.current_user(
         active=True, verified=requires_verification
-    )
-    get_current_superuser = authenticator.current_user(
-        active=True, verified=requires_verification, superuser=True
     )
 
     async def get_user_or_404(
@@ -89,7 +87,7 @@ def get_users_router(
     )
     async def update_me(
         request: Request,
-        user_update: user_update_schema,  # type: ignore
+        user_update: user_update_schema,
         user: models.UP = Depends(get_current_active_user),
         user_manager: BaseUserManager[models.UP, models.ID] = Depends(get_user_manager),
     ):
@@ -175,7 +173,7 @@ def get_users_router(
         },
     )
     async def update_user(
-        user_update: user_update_schema,  # type: ignore
+        user_update: user_update_schema,
         request: Request,
         user=Depends(get_user_or_404),
         user_manager: BaseUserManager[models.UP, models.ID] = Depends(get_user_manager),
@@ -233,4 +231,5 @@ def get_users_router(
     )
     async def get_users_list(user_manager: BaseUserManager = Depends(get_user_manager)):
         return paginate(list(await user_manager.get_all_users()))
+
     return router

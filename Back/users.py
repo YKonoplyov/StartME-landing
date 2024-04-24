@@ -1,66 +1,62 @@
-from typing import Any, Optional, Dict
-
-from fastapi import Depends, Request, exceptions
+import os
 from pwdlib import PasswordHash
+from typing import Any, Optional, Dict
 from pwdlib.hashers.bcrypt import BcryptHasher
+
+from fastapi import Depends, Request
 from fastapi_users.password import PasswordHelper
-from fastapi_users import BaseUserManager, FastAPIUsers, IntegerIDMixin
-from fastapi_users.authentication import (
-    AuthenticationBackend,
-    BearerTransport,
-    JWTStrategy,
+from fastapi_users.authentication import JWTStrategy
+from fastapi_users import (
+    models,
+    exceptions as users_exceptions,
+    BaseUserManager,
+    FastAPIUsers,
+    IntegerIDMixin,
 )
 
-from fastapi_users.db import SQLAlchemyUserDatabase
-from fastapi_users import models, exceptions as users_exceptions
-
 import schemas
-from utils import exceptions as custom_exceptions 
+from utils import exceptions as custom_exceptions
 from auth import BearerTransportRefresh, AuthenticationBackendRefresh
 from db.users_db import get_user_db, models as db_models, User, UsersDB
 
-SECRET = "SECRET"
-REFRESH_SECRET = "REFRESH_SECRET"
+
+SECRET = os.getenv("API_SECRET")
+REFRESH_SECRET = os.getenv("REFRESH_SECRET")
+
 
 class PasswordHelperV2(PasswordHelper):
     def __init__(self, password_hash: Optional[PasswordHash] = None) -> None:
         if password_hash is None:
-            self.password_hash = PasswordHash(
-                (
-                    BcryptHasher(rounds=10, prefix="2a"),
-                )
-            )
+            self.password_hash = PasswordHash((BcryptHasher(rounds=10, prefix="2a"),))
         else:
-            self.password_hash = password_hash  # pragma: no cover
+            self.password_hash = password_hash
+
+
 password_helper = PasswordHelperV2()
+
+
 class UserManager(BaseUserManager[db_models.User, IntegerIDMixin]):
     reset_password_token_secret = SECRET
     verification_token_secret = SECRET
-    
-    
-    async def authenticate(
-        self, credentials: dict
-    ) -> Optional[models.UP]:
-        
+
+    async def authenticate(self, credentials: dict) -> Optional[models.UP]:
         try:
             user = await self.user_db.get_by_username_exc(credentials.username)
         except users_exceptions.UserNotExists:
-            # Run the hasher to mitigate timing attack
-            # Inspired from Django: https://code.djangoproject.com/ticket/20760
             self.password_helper.hash(credentials.password)
             return None
-        
+
         verified, updated_password_hash = self.password_helper.verify_and_update(
             credentials.password, user.hashed_password
         )
         if not verified:
             return None
-        # Update password hash to a more robust one if needed
+
         if updated_password_hash is not None:
             await self.user_db.update(user, {"hashed_password": updated_password_hash})
 
         return user
-    
+
     def parse_id(self, value: Any) -> int:
         if isinstance(value, float):
             raise users_exceptions.InvalidID()
@@ -76,10 +72,10 @@ class UserManager(BaseUserManager[db_models.User, IntegerIDMixin]):
         safe: bool = False,
         request: Optional[Request] = None,
     ) -> models.UP:
-
         await self.validate_password(user_create.password, user_create)
 
         existing_user = await self.user_db.get_by_username(user_create.username)
+
         if existing_user is not None:
             raise users_exceptions.UserAlreadyExists()
 
@@ -88,27 +84,26 @@ class UserManager(BaseUserManager[db_models.User, IntegerIDMixin]):
             if safe
             else user_create.create_update_dict_superuser()
         )
-        # new_user_role = user_dict.get("role")
+        new_user_role = user_dict.get("role")
+
         # if (
-        #     current_user.role == db_models.Roles.READ_ONLY 
+        #     current_user.role == db_models.Roles.READ_ONLY
         #     and new_user_role != db_models.Roles.READ_ONLY
         # ):
         #     raise custom_exceptions.NotEnoughPermissions()
 
-        # if (
-        #     current_user.role == db_models.Roles.USER 
-        #     and new_user_role not in [
-        #         db_models.Roles.READ_ONLY, db_models.Roles.USER
-        #         ]
-        # ):
+        # if current_user.role == db_models.Roles.USER and new_user_role not in [
+        #     db_models.Roles.READ_ONLY,
+        #     db_models.Roles.USER,
+        # ]:
         #     raise custom_exceptions.NotEnoughPermissions()
-        
+
         # if (
-        #     current_user.role == db_models.Roles.MANAGER 
+        #     current_user.role == db_models.Roles.MANAGER
         #     and new_user_role == db_models.Roles.ADMIN
         # ):
-        #     raise custom_exceptions.NotEnoughPermissions() 
-        
+        #     raise custom_exceptions.NotEnoughPermissions()
+
         password = user_dict.pop("password")
         user_dict["hashed_password"] = self.password_helper.hash(password)
 
@@ -117,7 +112,7 @@ class UserManager(BaseUserManager[db_models.User, IntegerIDMixin]):
         await self.on_after_register(created_user, request)
 
         return created_user
-    
+
     async def update(
         self,
         user_update: schemas.UserUpdate,
@@ -139,29 +134,36 @@ class UserManager(BaseUserManager[db_models.User, IntegerIDMixin]):
         triggered the operation, defaults to None.
         :return: The updated user.
         """
-            
+
         if safe:
             updated_user_data = user_update.create_update_dict()
         else:
             updated_user_data = user_update.create_update_dict_superuser()
+
         if user.role in [db_models.Roles.USER, db_models.Roles.READ_ONLY]:
             updated_user.pop("role")
+
         updated_user = await self._update(user, updated_user_data)
         await self.on_after_update(updated_user, updated_user_data, request)
+
         return updated_user
-    
+
     async def _update(self, user: models.UP, update_dict: Dict[str, Any]) -> models.UP:
         validated_update_dict = {}
+
         for field, value in update_dict.items():
             if field == "password" and value is not None:
                 await self.validate_password(value, user)
+
                 validated_update_dict["hashed_password"] = self.password_helper.hash(
                     value
                 )
+
             else:
                 validated_update_dict[field] = value
+
         return await self.user_db.update(user, validated_update_dict)
-    
+
     async def get_all_users(self):
         return await self.user_db.get_all_users()
 
@@ -185,13 +187,15 @@ async def get_user_manager(user_db: UsersDB = Depends(get_user_db)):
     yield UserManager(user_db, password_helper)
 
 
-bearer_transport_refresh = BearerTransportRefresh(tokenUrl="auth/jwt/login")
-
 def get_jwt_strategy() -> JWTStrategy:
-    return JWTStrategy(secret=SECRET, lifetime_seconds=300)
+    return JWTStrategy(secret=SECRET, lifetime_seconds=3600)
+
 
 def get_refresh_jwt_strategy() -> JWTStrategy:
     return JWTStrategy(secret=REFRESH_SECRET, lifetime_seconds=259200)
+
+
+bearer_transport_refresh = BearerTransportRefresh(tokenUrl="auth/jwt/login")
 
 auth_backend = AuthenticationBackendRefresh(
     name="jwt",
@@ -201,4 +205,3 @@ auth_backend = AuthenticationBackendRefresh(
 )
 
 fastapi_users = FastAPIUsers[User, int](get_user_manager, [auth_backend])
-

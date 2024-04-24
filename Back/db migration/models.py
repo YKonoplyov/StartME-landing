@@ -16,7 +16,7 @@ from sqlalchemy import (
 from fastapi_users.db import SQLAlchemyBaseUserTable
 from sqlalchemy.orm import mapped_column, Mapped, relationship
 
-from db.engine import Base
+from engine import Base
 
 
 class Roles(PythonEnum):

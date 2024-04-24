@@ -1,36 +1,36 @@
-from typing import Tuple
+from typing import Annotated
 
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.exc import IntegrityError
-from fastapi import FastAPI, Depends, HTTPException, Response, status, Request
-from fastapi.middleware.cors import CORSMiddleware
 from fastapi_users.router import common
-from fastapi_users import exceptions as users_exceptions
-from fastapi_users import models as fast_users_models
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi_users.authentication import Strategy
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi_pagination import Page, add_pagination, paginate
 from fastapi_pagination.utils import disable_installed_extensions_check
+from fastapi_users import models as fast_users_models, exceptions as users_exceptions
+from fastapi import FastAPI, Depends, HTTPException, Response, status, Request, Header
+
 import crud
 import schemas
 import routers
 import permissions
 from db.users_db import User
-from db.engine import get_async_session
-from users import auth_backend, fastapi_users, UserManager, get_user_manager
 from utils import mail_module
-from utils.exceptions import ObjectNotfund, Forbidden, NotEnoughPermissions
 from test_data import email_to, text
+from db.engine import get_async_session
+from utils.exceptions import ObjectNotfund, Forbidden, NotEnoughPermissions
+from users import auth_backend, fastapi_users, UserManager, get_user_manager
+
 
 disable_installed_extensions_check()
 
 app = FastAPI(root_path="/api/v1")
 
 origins = [
-    "http://nginx", 
-    "https://nginx", 
+    "http://nginx",
+    "https://nginx",
     "http://client",
     "https://client",
-    "*",
 ]
 
 app.add_middleware(
@@ -40,7 +40,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
 
 
 @app.get(
@@ -63,20 +62,19 @@ async def get_funds_list(db: AsyncSession = Depends(get_async_session)):
 async def get_fund_by_id(
     fund_id: int,
     db: AsyncSession = Depends(get_async_session),
-    current_user: User = Depends(permissions.manager_or_higher)
-    ):
+    current_user: User = Depends(permissions.manager_or_higher),
+):
     try:
         fund = await crud.get_fund_by_id(
-            db=db, 
-            fund_id=fund_id, 
+            db=db, fund_id=fund_id, current_user=current_user
         )
     except ObjectNotfund:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Object not fund"
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Object not fund"
         )
     except Forbidden:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
+
     return fund
 
 
@@ -93,28 +91,25 @@ async def create_fund(
     return new_fund
 
 
-@app.patch(
-    "/funds/{fund_id}",
-    response_model=schemas.FundRead,
-    tags=["funds"]
-)
+@app.patch("/funds/{fund_id}", response_model=schemas.FundRead, tags=["funds"])
 async def update_fund_by_id(
     fund_id: int,
     fund_data: schemas.FundUpdate,
     db: AsyncSession = Depends(get_async_session),
     user_manager: UserManager = Depends(get_user_manager),
-    current_user: User = Depends(permissions.manager_or_higher)
+    current_user: User = Depends(permissions.manager_or_higher),
 ):
     try:
         updated_fund = await crud.update_fund_by_id(
-            db=db, 
-            fund_id=fund_id, 
+            db=db,
+            fund_id=fund_id,
             fund_new_data=fund_data,
             user_manager=user_manager,
-            current_user=current_user
+            current_user=current_user,
         )
     except ObjectNotfund:
         raise HTTPException(status_code=400, detail="No such fund")
+
     return updated_fund
 
 
@@ -128,10 +123,12 @@ async def delete_fund_by_id(
 ):
     try:
         await crud.delete_fund_by_id(db=db, fund_id=fund_id)
+
     except ObjectNotfund:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, 
-            detail="No such fund")
+            status_code=status.HTTP_400_BAD_REQUEST, detail="No such fund"
+        )
+
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
@@ -145,29 +142,34 @@ async def add_manager(
 ):
     try:
         await crud.fund_add_manager(fund_id=fund_id, user_id=manager_id, db=db)
+
     except ObjectNotfund:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST)
+
     except IntegrityError:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Already assigned"
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Already assigned"
         )
+
     return Response(status_code=status.HTTP_200_OK)
 
-@app.post(
-        "/auth/jwt/refresh",
-        name=f"auth:{auth_backend.name}.refresh",
-        tags=["auth"]
-    )
+
+@app.post("/auth/jwt/refresh", name=f"auth:{auth_backend.name}.refresh", tags=["auth"])
 async def refresh(
-    refresh_token_data: schemas.RefreshToken,
-    refresh_strategy: Strategy[fast_users_models.UP, fast_users_models.ID] = Depends(auth_backend.get_refresh_strategy),
-    strategy: Strategy[fast_users_models.UP, fast_users_models.ID] = Depends(auth_backend.get_strategy),
-    user_manager: UserManager = Depends(get_user_manager)
+    refresh_token: Annotated[str | None, Header()] = None,
+    refresh_strategy: Strategy[fast_users_models.UP, fast_users_models.ID] = Depends(
+        auth_backend.get_refresh_strategy
+    ),
+    strategy: Strategy[fast_users_models.UP, fast_users_models.ID] = Depends(
+        auth_backend.get_strategy
+    ),
+    user_manager: UserManager = Depends(get_user_manager),
 ):
-    user = await refresh_strategy.read_token(refresh_token_data.refresh_token, user_manager)
+    user = await refresh_strategy.read_token(refresh_token, user_manager)
     response = await auth_backend.login(strategy, user)
+
     return response
+
 
 app.include_router(
     fastapi_users.get_auth_router(auth_backend), prefix="/auth/jwt", tags=["auth"]
@@ -210,14 +212,13 @@ app.include_router(
 )
 async def register(
     request: Request,
-    user_create: schemas.UserCreate,  # type: ignore
+    user_create: schemas.UserCreate,
     user_manager: UserManager = Depends(get_user_manager),
-    # current_user = Depends(permissions.read_only_or_higher)
+    # current_user=Depends(permissions.read_only_or_higher),
 ):
     try:
         created_user = await user_manager.create_with_funds(
-            user_create, safe=True, request=request, 
-            # current_user=current_user
+            user_create, safe=True, request=request  # , current_user=current_user
         )
     except users_exceptions.UserAlreadyExists:
         raise HTTPException(
@@ -234,17 +235,17 @@ async def register(
         )
     except NotEnoughPermissions:
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not enough permissions"
+            status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions"
         )
     return created_user
+
 
 app.include_router(
     routers.get_users_router(
         user_schema=schemas.UserRead,
         user_update_schema=schemas.UserUpdate,
         get_user_manager=get_user_manager,
-        authenticator=fastapi_users.authenticator
+        authenticator=fastapi_users.authenticator,
     ),
     prefix="/users",
     tags=["users"],
@@ -291,12 +292,17 @@ async def get_record_by_id(
     dependencies=[Depends(permissions.manager_or_higher)],
 )
 async def create_record(
-    record_data: schemas.RecordCreate, db: AsyncSession = Depends(get_async_session)
+    record_data: schemas.RecordCreate,
+    db: AsyncSession = Depends(get_async_session),
+    current_user=Depends(permissions.read_only_or_higher),
 ):
     try:
-        new_record = await crud.create_record(db=db, record_data=record_data)
+        new_record = await crud.create_record(
+            db=db, record_data=record_data, current_user=current_user
+        )
     except ObjectNotfund:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+
     return new_record
 
 
@@ -311,7 +317,7 @@ async def update_record_by_id(
     record_data: schemas.RecordUpdate,
     db: AsyncSession = Depends(get_async_session),
 ) -> schemas.RecordRead:
-    try:    
+    try:
         updated_record = await crud.update_record_by_id(
             record_id=record_id, new_data=record_data, db=db
         )
@@ -334,26 +340,24 @@ async def delete_record_by_id(
         raise HTTPException(status_code=400, detail="No such record")
     return Response(status_code=204)
 
+
 @app.post("/send_email")
-async def send_email(data: schemas.UserMail) -> Response:
+async def send_email(data: schemas.UserMail):
     mu = mail_module.MailUtil()
     u_data = data.dict()
-    try:
-        mu.send_message(
-            u_data.get("subject"),
-            email_to,
-            text.format(
-                u_data.get("user_choice"),
-                u_data.get("name"),
-                u_data.get("email"),
-                u_data.get("message"),
-            ),
-        )
-    except Exception as e:
-        print(e)
-    return Response(
-        status_code=status.HTTP_200_OK,
-        content={"message": "Email has been sent"},
+
+    mu.send_message(
+        u_data.get("subject"),
+        email_to,
+        text.format(
+            u_data.get("user_choice"),
+            u_data.get("name"),
+            u_data.get("email"),
+            u_data.get("message"),
+        ),
     )
+
+    return Response(status_code=status.HTTP_200_OK)
+
 
 add_pagination(app)
